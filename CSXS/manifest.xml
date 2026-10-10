@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExtensionManifest Version="7.0" ExtensionBundleId="com.reticolo.grid" ExtensionBundleVersion="1.1.0" ExtensionBundleName="Reticolo"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ExtensionList>
+    <Extension Id="com.reticolo.grid.panel" Version="1.1.0"/>
+  </ExtensionList>
+  <ExecutionEnvironment>
+    <HostList>
+      <!-- Illustrator CC 2018+, Photoshop 2021+, InDesign 2021+ -->
+      <Host Name="ILST" Version="[22.0,99.9]"/>
+      <Host Name="PHXS" Version="[22.0,99.9]"/>
+      <Host Name="PHSP" Version="[22.0,99.9]"/>
+      <Host Name="IDSN" Version="[16.0,99.9]"/>
+    </HostList>
+    <LocaleList>
+      <Locale Code="All"/>
+    </LocaleList>
+    <RequiredRuntimeList>
+      <RequiredRuntime Name="CSXS" Version="9.0"/>
+    </RequiredRuntimeList>
+  </ExecutionEnvironment>
+  <DispatchInfoList>
+    <Extension Id="com.reticolo.grid.panel">
+      <DispatchInfo>
+        <Resources>
+          <MainPath>./index.html</MainPath>
+          <ScriptPath>./host/loader.jsx</ScriptPath>
+          <CEFCommandLine>
+            <Parameter>--allow-file-access-from-files</Parameter>
+          </CEFCommandLine>
+        </Resources>
+        <Lifecycle>
+          <AutoVisible>true</AutoVisible>
+        </Lifecycle>
+        <UI>
+          <Type>Panel</Type>
+          <Menu>Reticolo</Menu>
+          <Geometry>
+            <Size><Height>760</Height><Width>320</Width></Size>
+            <MinSize><Height>360</Height><Width>250</Width></MinSize>
+            <MaxSize><Height>2400</Height><Width>900</Width></MaxSize>
+          </Geometry>
+        </UI>
+      </DispatchInfo>
+    </Extension>
+  </DispatchInfoList>
+</ExtensionManifest>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Debug remoto: con l'app aperta visita http://localhost:8088 (Illustrator), 8089 (Photoshop), 8090 (InDesign) in Chrome -->
+<ExtensionList>
+  <Extension Id="com.reticolo.grid.panel">
+    <HostList>
+      <Host Name="ILST" Port="8088"/>
+      <Host Name="PHXS" Port="8089"/>
+      <Host Name="PHSP" Port="8089"/>
+      <Host Name="IDSN" Port="8090"/>
+    </HostList>
+  </Extension>
+</ExtensionList>

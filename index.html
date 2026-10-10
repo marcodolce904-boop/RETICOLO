@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reticolo</title>
+  <link rel="stylesheet" href="css/panel.css">
+</head>
+<body>
+  <!-- Solo nell'anteprima da browser: simula gli artboard dell'app -->
+  <div class="stage" id="stage" aria-label="Anteprima artboard"></div>
+
+  <div class="app" id="app">
+    <header class="bar">
+      <div class="brand"><span data-icon="grid-four"></span>Reticolo</div>
+      <button class="icon-btn" id="btnVisible" type="button" data-icon="eye" data-i18n-title="top.visible" aria-pressed="false"></button>
+      <button class="icon-btn" id="btnLock" type="button" data-icon="lock-simple-open" data-i18n-title="top.lock" aria-pressed="false"></button>
+      <button class="icon-btn" id="btnSettings" type="button" data-icon="gear-six" data-i18n-title="top.settings"></button>
+      <button class="pill-btn" id="btnLibrary" type="button" data-i18n-title="top.library"><span data-icon="books"></span><span data-i18n="top.library"></span></button>
+    </header>
+
+    <!-- =============================================================== PRINCIPALE -->
+    <main class="view" id="viewMain">
+      <div class="notice" id="noDoc" hidden><span data-icon="warning-circle"></span><span data-i18n="noDoc"></span></div>
+
+      <nav class="tabs" role="tablist">
+        <button class="tab" type="button" role="tab" data-tab="columns" data-i18n="tab.columns"></button>
+        <button class="tab" type="button" role="tab" data-tab="modular" data-i18n="tab.modular"></button>
+        <button class="tab" type="button" role="tab" data-tab="baseline" data-i18n="tab.baseline"></button>
+        <button class="tab" type="button" role="tab" data-tab="comp" data-i18n="tab.comp"></button>
+      </nav>
+
+      <div class="row target-row">
+        <select class="select grow" id="target" aria-label="Target"></select>
+        <button class="icon-btn" id="btnRefresh" type="button" data-icon="arrows-clockwise" data-i18n-title="target.refresh"></button>
+      </div>
+
+      <!-- Colonne -->
+      <section data-pane="columns">
+        <div class="grid2">
+          <div class="field"><span class="lbl" data-i18n="f.columns"></span>
+            <div class="num"><button class="step" type="button" data-step="-1" data-icon="minus" tabindex="-1"></button><input data-bind="columns.count" data-int data-min="1" data-max="64" inputmode="numeric"><button class="step" type="button" data-step="1" data-icon="plus" tabindex="-1"></button></div>
+          </div>
+          <label class="field"><span class="lbl" data-i18n="f.gutter"></span>
+            <div class="num left"><input data-bind="columns.gutter" data-min="0" inputmode="decimal"><span class="suffix" data-unit></span></div>
+          </label>
+        </div>
+        <label class="field"><span class="lbl"><span data-i18n="f.maxWidth"></span></span>
+          <div class="num left"><input data-bind="columns.maxWidth" data-min="0" inputmode="decimal"><span class="suffix" data-unit></span></div>
+          <span class="help" data-i18n="f.maxWidth.help"></span>
+        </label>
+        <label class="field"><span class="lbl" data-i18n="f.ratios"></span>
+          <input class="input mono" data-bind="columns.ratios" data-text maxlength="80" placeholder="2 1 1   /   1 1 2 3 5" spellcheck="false">
+          <span class="help" data-i18n="f.ratios.help"></span>
+        </label>
+        <label class="field"><span class="lbl" data-i18n="f.lead"></span>
+          <div class="num left"><input data-bind="columns.lead" data-min="0" inputmode="decimal"><span class="suffix" data-unit></span></div>
+          <span class="help" data-i18n="f.lead.help"></span>
+        </label>
+      </section>
+
+      <!-- Modulare -->
+      <section data-pane="modular">
+        <div class="field"><span class="lbl" data-i18n="f.sizing"></span>
+          <div class="seg" data-seg="modular.sizing">
+            <button type="button" data-val="fit" data-i18n="f.sizing.fit"></button>
+            <button type="button" data-val="fixed" data-i18n="f.sizing.fixed"></button>
+          </div>
+        </div>
+        <div class="grid2" data-show="modular.sizing=fit">
+          <div class="field"><span class="lbl" data-i18n="f.columns"></span>
+            <div class="num"><button class="step" type="button" data-step="-1" data-icon="minus" tabindex="-1"></button><input data-bind="modular.cols" data-int data-min="1" data-max="64" inputmode="numeric"><button class="step" type="button" data-step="1" data-icon="plus" tabindex="-1"></button></div>
+          </div>
+          <div class="field"><span class="lbl" data-i18n="f.rows"></span>
+            <div class="num"><button class="step" type="button" data-step="-1" data-icon="minus" tabindex="-1"></button><input data-bind="modular.rows" data-int data-min="1" data-max="64" inputmode="numeric"><button class="step" type="button" data-step="1" data-icon="plus" tabindex="-1"></button></div>
+          </div>
+        </div>
+        <div class="grid2" data-show="modular.sizing=fixed">
+          <label class="field"><span class="lbl" data-i18n="f.moduleW"></span>
+            <div class="num left"><input data-bind="modular.mw" data-min="1" inputmode="decimal"><span class="suffix" data-unit></span></div>
+          </label>
+          <label class="field"><span class="lbl" data-i18n="f.moduleH"></span>
+            <div class="num left"><input data-bind="modular.mh" data-min="1" inputmode="decimal"><span class="suffix" data-unit></span></div>
+          </label>
+        </div>
+        <div class="grid2">
+          <label class="field"><span class="lbl" data-i18n="f.gutterX"></span>
+            <div class="num left"><input data-bind="modular.gx" data-min="0" inputmode="decimal"><span class="suffix" data-unit></span></div>
+          </label>
+          <label class="field"><span class="lbl" data-i18n="f.gutterY"></span>
+            <div class="num left"><input data-bind="modular.gy" data-min="0" inputmode="decimal"><span class="suffix" data-unit></span></div>
+          </label>
+        </div>
+        <label class="field" data-show="modular.sizing=fit" style="margin-top:10px"><span class="lbl" data-i18n="f.lead"></span>
+          <div class="num left"><input data-bind="modular.lead" data-min="0" inputmode="decimal"><span class="suffix" data-unit></span></div>
+          <span class="help" data-i18n="f.leadMod.help"></span>
+        </label>
+      </section>
+
+      <!-- Baseline -->
+      <section data-pane="baseline">
+        <div class="field"><span class="lbl" data-i18n="f.direction"></span>
+          <div class="seg" data-seg="baseline.dir">
+            <button type="button" data-val="h" data-i18n="f.dir.h"></button>
+            <button type="button" data-val="v" data-i18n="f.dir.v"></button>
+            <button type="button" data-val="both" data-i18n="f.dir.both"></button>
+            <button type="button" data-val="dots" data-i18n="f.dir.dots"></button>
+          </div>
+        </div>
+        <div class="grid2">
+          <label class="field"><span class="lbl" data-i18n="f.spacing"></span>
+            <div class="num left"><input data-bind="baseline.spacing" data-min="0.5" inputmode="decimal"><span class="suffix" data-unit></span></div>
+          </label>
+          <div class="field"><span class="lbl" data-i18n="f.boldEvery"></span>
+            <div class="num"><button class="step" type="button" data-step="-1" data-icon="minus" tabindex="-1"></button><input data-bind="baseline.boldEvery" data-int data-min="0" data-max="99" inputmode="numeric"><button class="step" type="button" data-step="1" data-icon="plus" tabindex="-1"></button></div>
+          </div>
+        </div>
+        <label class="field"><span class="lbl" data-i18n="f.offset"></span>
+          <div class="num left"><input data-bind="baseline.offset" data-min="0" inputmode="decimal"><span class="suffix" data-unit></span></div>
+        </label>
+      </section>
+
+      <!-- Composizione -->
+      <section data-pane="comp">
+        <nav class="subtabs" role="tablist">
+          <button class="subtab" type="button" role="tab" data-family="classic" data-i18n="sub.classic"></button>
+          <button class="subtab" type="button" role="tab" data-family="symmetry" data-i18n="sub.symmetry"></button>
+          <button class="subtab" type="button" role="tab" data-family="rabat" data-i18n="sub.rabat"></button>
+          <button class="subtab" type="button" role="tab" data-family="geom" data-i18n="sub.geom"></button>
+          <button class="subtab" type="button" role="tab" data-family="studio" data-i18n="sub.studio"></button>
+          <button class="subtab" type="button" role="tab" data-family="social" data-i18n="sub.social"></button>
+        </nav>
+        <div class="variants" id="variants"></div>
+        <p class="help" data-show="comp.family=social" data-i18n="social.note" style="margin:-4px 0 10px"></p>
+        <div class="grid2">
+          <label class="field" data-show="comp.spacing"><span class="lbl" data-i18n="f.geomSpacing"></span>
+            <div class="num left"><input data-bind="comp.spacing" data-min="1" inputmode="decimal"><span class="suffix" data-unit></span></div>
+          </label>
+          <div class="field" data-show="comp.count"><span class="lbl" data-i18n="f.count"></span>
+            <div class="num"><button class="step" type="button" data-step="-1" data-icon="minus" tabindex="-1"></button><input data-bind="comp.count" data-int data-min="2" data-max="180" inputmode="numeric"><button class="step" type="button" data-step="1" data-icon="plus" tabindex="-1"></button></div>
+          </div>
+          <div class="field"><span class="lbl">&nbsp;</span>
+            <div class="flips">
+              <button class="icon-btn" type="button" data-toggle="comp.flipH" data-icon="flip-horizontal" data-i18n-title="f.flipH" aria-pressed="false"></button>
+              <button class="icon-btn" type="button" data-toggle="comp.flipV" data-icon="flip-vertical" data-i18n-title="f.flipV" aria-pressed="false"></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Margini (comuni, legati al tipo attivo) -->
+      <div class="field margins">
+        <span class="lbl"><span data-i18n="f.margins"></span>
+          <button class="icon-btn" type="button" id="btnLink" data-icon="link-simple" data-i18n-title="f.linkMargins" aria-pressed="false" style="width:22px;height:22px"></button>
+        </span>
+        <div class="cells">
+          <label class="cell"><span data-i18n="f.top"></span><div class="num"><input data-bind="@.margins.t" data-min="0" data-margin inputmode="decimal"></div></label>
+          <label class="cell"><span data-i18n="f.right"></span><div class="num"><input data-bind="@.margins.r" data-min="0" data-margin inputmode="decimal"></div></label>
+          <label class="cell"><span data-i18n="f.bottom"></span><div class="num"><input data-bind="@.margins.b" data-min="0" data-margin inputmode="decimal"></div></label>
+          <label class="cell"><span data-i18n="f.left"></span><div class="num"><input data-bind="@.margins.l" data-min="0" data-margin inputmode="decimal"></div></label>
+        </div>
+      </div>
+
+      <div class="field"><span class="lbl" data-i18n="f.unit"></span>
+        <div class="seg" data-seg="unit">
+          <button type="button" data-val="px">px</button>
+          <button type="button" data-val="mm">mm</button>
+          <button type="button" data-val="pt">pt</button>
+        </div>
+      </div>
+
+      <div class="readout" id="readout" aria-live="polite"></div>
+
+      <div class="actions">
+        <div class="row live-row">
+          <span data-i18n="live"></span>
+          <label class="switch"><input type="checkbox" id="live"><span class="track"></span><span class="sr-only" data-i18n="live"></span></label>
+        </div>
+        <div class="gen-row">
+          <button class="btn primary" type="button" id="btnGenerate" data-i18n="generate"></button>
+          <button class="btn" type="button" id="btnClear" data-i18n="clear"></button>
+        </div>
+        <div class="row preset-row">
+          <span class="lbl" data-i18n="preset"></span>
+          <select class="select grow" id="preset" aria-label="Preset"></select>
+          <button class="icon-btn" type="button" id="btnSave" data-icon="floppy-disk" data-i18n-title="save.current"></button>
+        </div>
+        <form class="save-form" id="saveForm" hidden>
+          <label class="field"><span class="lbl" data-i18n="save.name"></span><input class="input" id="saveName" maxlength="120" required></label>
+          <label class="field"><span class="lbl" data-i18n="save.tags"></span><input class="input" id="saveTags" maxlength="200"></label>
+          <div class="row">
+            <button class="btn small" type="button" id="saveCancel" data-i18n="cancel"></button>
+            <button class="btn small primary" type="submit" data-i18n="save.ok"></button>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <!-- =============================================================== LIBRERIA -->
+    <section class="view" id="viewLibrary" hidden style="position:relative">
+      <div class="view-head">
+        <button class="icon-btn" type="button" data-back data-icon="arrow-left" data-i18n-title="back"></button>
+        <h2><span data-i18n="lib.title"></span><span class="count" id="libCount"></span></h2>
+      </div>
+      <div class="search"><span data-icon="magnifying-glass"></span><input class="input" id="libSearch" type="search" data-i18n-ph="lib.search" aria-label="Search"></div>
+      <div class="chips" id="libChips"></div>
+      <div class="lib-tools">
+        <button class="btn primary small" type="button" id="libSave"><span data-icon="floppy-disk"></span><span data-i18n="save.current"></span></button>
+        <button class="btn small" type="button" id="libImport"><span data-icon="download-simple"></span><span data-i18n="lib.import"></span></button>
+        <button class="btn small" type="button" id="libExportAll"><span data-icon="export"></span><span data-i18n="lib.exportAll"></span></button>
+      </div>
+      <form class="save-form" id="libSaveForm" hidden>
+        <label class="field"><span class="lbl" data-i18n="save.name"></span><input class="input" id="libSaveName" maxlength="120" required></label>
+        <label class="field"><span class="lbl" data-i18n="save.tags"></span><input class="input" id="libSaveTags" maxlength="200"></label>
+        <div class="row">
+          <button class="btn small" type="button" id="libSaveCancel" data-i18n="cancel"></button>
+          <button class="btn small primary" type="submit" data-i18n="save.ok"></button>
+        </div>
+      </form>
+      <input type="file" id="fileInput" accept=".json,application/json" multiple hidden>
+      <div class="lib-list" id="libList"></div>
+      <div class="lib-foot">
+        <span data-i18n="lib.file"></span>
+        <code id="libPath"></code>
+        <button class="btn small" type="button" id="libOpenFolder"><span data-icon="folder-open"></span><span data-i18n="lib.openFolder"></span></button>
+      </div>
+      <div class="dropzone" id="dropzone" hidden><span data-i18n="lib.drop"></span></div>
+    </section>
+
+    <!-- =============================================================== IMPOSTAZIONI -->
+    <section class="view" id="viewSettings" hidden>
+      <div class="view-head">
+        <button class="icon-btn" type="button" data-back data-icon="arrow-left" data-i18n-title="back"></button>
+        <h2 data-i18n="set.title"></h2>
+      </div>
+
+      <div class="section">
+        <h3 data-i18n="set.language"></h3>
+        <div class="seg" data-setting-seg="lang">
+          <button type="button" data-val="it">Italiano</button>
+          <button type="button" data-val="en">English</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3 data-i18n="set.appearance"></h3>
+        <label class="field"><span class="lbl" data-i18n="set.renderAs"></span>
+          <select class="select" data-setting="render">
+            <option value="stroke" data-i18n="set.render.stroke"></option>
+            <option value="fill" data-i18n="set.render.fill"></option>
+            <option value="both" data-i18n="set.render.both"></option>
+            <option value="guides" data-i18n="set.render.guides"></option>
+          </select>
+        </label>
+        <p class="help" id="guidesHelp" data-i18n="set.guidesHelp"></p>
+        <div class="grid2">
+          <label class="field"><span class="lbl" data-i18n="set.stroke"></span>
+            <span class="color"><input type="color" data-setting="style.stroke"><input class="input" data-setting-hex="style.stroke" maxlength="7"></span>
+          </label>
+          <label class="field"><span class="lbl" data-i18n="set.fill"></span>
+            <span class="color"><input type="color" data-setting="style.fill"><input class="input" data-setting-hex="style.fill" maxlength="7"></span>
+          </label>
+          <label class="field"><span class="lbl" data-i18n="set.strokeW"></span>
+            <div class="num left"><input data-setting="style.sw" data-num data-min="0.1" data-max="20" inputmode="decimal"><span class="suffix">pt/px</span></div>
+          </label>
+          <label class="field"><span class="lbl" data-i18n="set.fillA"></span>
+            <div class="num left"><input data-setting="style.fa" data-num data-min="1" data-max="100" inputmode="decimal"><span class="suffix">%</span></div>
+          </label>
+          <label class="field"><span class="lbl" data-i18n="set.bold"></span>
+            <div class="num left"><input data-setting="style.bold" data-num data-min="1" data-max="10" inputmode="decimal"><span class="suffix">x</span></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3 data-i18n="set.output"></h3>
+        <label class="field"><span class="lbl" data-i18n="set.layer"></span><input class="input" data-setting="layer" maxlength="60"></label>
+        <label class="row check-row"><span data-i18n="set.lockAfter"></span><span class="switch"><input type="checkbox" data-setting="lockAfter"><span class="track"></span></span></label>
+        <label class="row check-row"><span data-i18n="set.idNative"></span><span class="switch"><input type="checkbox" data-setting="idNative"><span class="track"></span></span></label>
+        <p class="help" data-i18n="set.psGuides"></p>
+      </div>
+
+      <button class="btn danger small" type="button" id="btnReset" data-i18n="set.reset"></button>
+      <p class="help" style="margin-top:16px">Reticolo 1.1.0</p>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <script src="js/icons.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/presets.js"></script>
+  <script src="js/library.js"></script>
+  <script src="js/host.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
