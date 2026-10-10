@@ -1,5 +1,29 @@
 # Reticolo
 
+![status](https://img.shields.io/badge/status-experimental%20beta-orange) ![version](https://img.shields.io/badge/version-1.1.0--beta-blue) ![apps](https://img.shields.io/badge/Illustrator%20%C2%B7%20Photoshop%20%C2%B7%20InDesign-grey)
+
+**Layout grids for Adobe Illustrator, Photoshop and InDesign, in one panel.**
+
+Reticolo builds precise grids on your artboards and pages in a click: columns, modular grids, baselines and classic composition systems such as the golden spiral, dynamic symmetry and rabatment. It also covers practical tools like icon keylines, perspective guides and social media safe zones. Every grid can be saved to a personal library, tagged, and shared as a simple JSON file. The same library works in all three apps.
+
+It is built for graphic designers, editorial and print designers, UI and web designers, illustrators and content creators who set up grids every day and want them exact, repeatable and fast.
+
+> **Experimental beta.** Reticolo is under active development and has been tested on a limited number of setups. Features, file formats and behaviour may change between versions, and some combinations of app version and document may not work as expected. Save your work before generating grids on important files, and please report any problem by opening an issue.
+
+**Highlights**
+
+- Column, modular, baseline and dot grids, with margins, gutters and units in px, mm or pt
+- Asymmetric and Fibonacci column ratios, modules snapped to the baseline
+- 30 composition grids: rule of thirds, phi grid, golden spiral, dynamic symmetry, root rectangles, Van de Graaf canon, isometric and hexagonal grids, perspective with 1, 2 and 3 vanishing points, logo golden circles, icon keylines
+- Safe zones for Instagram Story and Reel, TikTok and YouTube
+- Output as strokes, filled cells or native guides, on a dedicated layer, with one-step undo in Photoshop and InDesign
+- Grid library with search, tags, favorites, import and export, plus 49 built-in presets
+- Interface in English and Italian, follows the light or dark theme of the app
+
+---
+
+> **Beta sperimentale.** Reticolo è in sviluppo attivo ed è stato provato su un numero limitato di configurazioni. Funzioni, formati dei file e comportamento possono cambiare tra una versione e l'altra. Salva il lavoro prima di generare griglie su file importanti e segnala ogni problema aprendo una issue.
+
 Generatore di griglie per **Illustrator, Photoshop e InDesign**. È un unico pannello (estensione CEP) con lo stesso codice nelle tre app:
 colonne, griglie modulari, baseline e griglie di composizione (spirale aurea, simmetria dinamica, rabattimento, isometrica…),
 più una **libreria** di griglie da salvare, importare ed esportare.

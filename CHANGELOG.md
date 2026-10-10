@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.0
+## 1.1.0 (beta sperimentale)
 
 - Colonne asimmetriche con rapporti (`2 1 1`, Fibonacci `1 1 2 3 5`).
 - Baseline sovrapposta a colonne e modulare, con moduli e gutter agganciati all'interlinea.
