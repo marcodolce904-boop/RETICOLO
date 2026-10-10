@@ -10,6 +10,8 @@ It is built for graphic designers, editorial and print designers, UI and web des
 
 > **Experimental beta.** Reticolo is under active development and has been tested on a limited number of setups. Features, file formats and behaviour may change between versions, and some combinations of app version and document may not work as expected. Save your work before generating grids on important files, and please report any problem by opening an issue.
 
+**Free to use**, also for professional and client work. Not open source: redistribution and resale are not allowed (see `LICENSE`).
+
 **Highlights**
 
 - Column, modular, baseline and dot grids, with margins, gutters and units in px, mm or pt
@@ -42,7 +44,7 @@ più una **libreria** di griglie da salvare, importare ed esportare.
 
 Per rimuoverlo usa `uninstall-windows.bat` (la libreria resta salvata). Le novità di ogni versione sono in `CHANGELOG.md`.
 
-> Tutti i diritti riservati (vedi `LICENSE`): il codice è consultabile, ma non può essere copiato, redistribuito o venduto senza autorizzazione.
+> **Licenza:** uso gratuito, anche professionale e per clienti. Non è consentito ripubblicarlo, venderlo o distribuirne versioni modificate. Dettagli in `LICENSE`.
 
 Versioni supportate: Illustrator CC 2018+, Photoshop 2021+, InDesign 2021+.
 

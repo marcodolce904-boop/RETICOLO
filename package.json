@@ -6,5 +6,5 @@
   "scripts": {
     "test": "node --test \"tests/*.test.js\""
   },
-  "license": "UNLICENSED"
+  "license": "SEE LICENSE IN LICENSE"
 }

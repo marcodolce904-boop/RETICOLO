@@ -1,9 +1,64 @@
-Reticolo - generatore di griglie per Illustrator, Photoshop e InDesign
-Copyright (c) 2026 Marco Dolce. Tutti i diritti riservati.
+Reticolo Free Use License, version 1.0
 
-Il codice e' pubblicato solo per consultazione. Non e' consentito copiarlo,
-modificarlo, distribuirlo, venderlo o concederlo in licenza a terzi senza
-autorizzazione scritta del titolare.
+Copyright (c) 2026 Marco Dolce. All rights not expressly granted below are reserved.
 
-Componenti di terze parti inclusi:
-- Phosphor Icons (js/icons.js), licenza MIT, Copyright (c) 2023 Phosphor Icons.
+"Software" means Reticolo: the source code, scripts, presets, documentation and
+any other file in this repository, except the third-party components listed at
+the end of this license, which keep their own licenses.
+
+1. FREE USE
+   You may download, install and use the Software free of charge, on any number
+   of your own computers, for personal, educational and professional work,
+   including paid design work for clients. Grids, layouts and other artwork you
+   create with the Software belong to you, with no restriction.
+
+2. MODIFICATIONS
+   You may modify the Software for your own use, including within your own
+   organization. You may not distribute modified versions.
+
+3. SHARING
+   You may share a link to the official repository
+   (https://github.com/marcodolce904-boop/RETICOLO). Forking through GitHub is
+   allowed only to propose changes back to the official repository.
+
+4. RESTRICTIONS
+   Without prior written permission from the copyright holder you may not:
+   a) redistribute, publish or mirror the Software or any part of it, modified
+      or not, on any website, store, marketplace or repository;
+   b) sell, rent, sublicense or charge for the Software, or bundle it with any
+      paid product or service;
+   c) remove or change this license or the copyright notices;
+   d) publish the Software, or a derivative of it, under a different name or
+      brand.
+
+5. CONTRIBUTIONS
+   By submitting a contribution (pull request, patch, preset or other material)
+   you grant the copyright holder a perpetual, worldwide, royalty-free license
+   to use, modify and distribute it as part of the Software under any license.
+
+6. BETA AND NO WARRANTY
+   The Software is an experimental beta. It is provided "AS IS", without
+   warranty of any kind, express or implied, including fitness for a particular
+   purpose and non-infringement. Save your documents before using it. In no
+   event shall the copyright holder be liable for any claim, damage, data loss
+   or other liability arising from the use of the Software.
+
+7. TERMINATION
+   These permissions end automatically if you break any of these terms.
+
+Adobe, Illustrator, Photoshop and InDesign are trademarks of Adobe Inc.
+Reticolo is an independent project, not affiliated with or endorsed by Adobe.
+
+Third-party components:
+- Phosphor Icons (js/icons.js), MIT License, Copyright (c) 2023 Phosphor Icons.
+
+----------------------------------------------------------------------------
+Sintesi in italiano (vale il testo inglese qui sopra)
+
+- Puoi scaricare, installare e usare Reticolo gratis, anche per lavori
+  professionali e per clienti. Le griglie e i lavori che crei sono tuoi.
+- Puoi modificarlo per uso tuo, ma non distribuire versioni modificate.
+- Puoi condividere il link al repository ufficiale.
+- Non puoi ripubblicarlo altrove, venderlo, includerlo in prodotti a pagamento
+  o pubblicarlo con un altro nome.
+- E' una beta sperimentale fornita senza garanzie: salva il lavoro prima di usarla.

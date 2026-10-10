@@ -9,7 +9,7 @@ Estensione CEP (pannello HTML + ExtendScript) per Illustrator, Photoshop e InDes
 - Nuove griglie: aggiungere la variante in `buildComp` (o un nuovo builder) e in `VARIANTS`, i nomi in `js/i18n.js` (IT e EN), eventualmente un preset in `js/presets.js`. Il test "ogni variante di composizione produce primitive dentro l'artboard" le copre automaticamente.
 - Ogni griglia deve restare sotto i limiti `MAX_CELLS`, `MAX_DOTS`, `MAX_POINTS` (altrimenti `tooDense`): le app Adobe si bloccano con decine di migliaia di oggetti.
 - Testi visibili in italiano e inglese, senza trattini lunghi.
-- Licenza: tutti i diritti riservati (`LICENSE`). Il repository è pubblico, ma il codice non è open source.
+- Licenza: Reticolo Free Use License (`LICENSE`). Uso gratuito anche professionale, niente redistribuzione o vendita. Non è open source.
 
 ## Comandi
 
