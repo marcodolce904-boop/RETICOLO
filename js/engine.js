@@ -800,7 +800,12 @@
       for (k in p) q[k] = p[k];
       if (p.t === "L") q.a = [W - p.a[0], p.a[1], W - p.a[2], p.a[3]];
       else if (p.t === "R") q.a = [W - p.a[0] - p.a[2], p.a[1], p.a[2], p.a[3]];
-      else q.p = p.p.map(function (pt) { var c = pt.slice(); c[0] = W - c[0]; return c; });
+      else q.p = p.p.map(function (pt) {
+        // [x, y] per le polilinee; [x, y, xSin, ySin, xDes, yDes] per le Bezier (ancora e maniglie)
+        var c = pt.slice();
+        for (var i = 0; i < c.length; i += 2) c[i] = W - c[i];
+        return c;
+      });
       return q;
     });
   }

@@ -1,6 +1,6 @@
 # Reticolo
 
-![status](https://img.shields.io/badge/status-experimental%20beta-orange) ![version](https://img.shields.io/badge/version-1.4.1--beta-blue) ![apps](https://img.shields.io/badge/Illustrator%20%C2%B7%20Photoshop%20%C2%B7%20InDesign-grey)
+![status](https://img.shields.io/badge/status-experimental%20beta-orange) ![version](https://img.shields.io/badge/version-1.4.2--beta-blue) ![apps](https://img.shields.io/badge/Illustrator%20%C2%B7%20Photoshop%20%C2%B7%20InDesign-grey)
 
 **Layout grids for Adobe Illustrator, Photoshop and InDesign, in one panel.**
 

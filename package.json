@@ -1,6 +1,6 @@
 {
   "name": "reticolo",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "private": true,
   "description": "Generatore di griglie per Illustrator, Photoshop e InDesign (estensione CEP)",
   "scripts": {

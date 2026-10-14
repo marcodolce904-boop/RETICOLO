@@ -366,3 +366,15 @@ test("canone Van de Graaf specchiato = blocco della pagina sinistra (esterno a s
   var m = E.mirrorX([r], 900)[0].a;
   assert.ok(near(m[0] + m[2], 900 - r.a[0]));
 });
+
+test("mirrorX: nelle Bezier si specchiano anche le maniglie (spirale aurea intera)", function () {
+  var ab = { w: 1440, h: 900 };
+  var out = E.build({ type: "comp", comp: { family: "classic", variant: "spiral" } }, ab, AI);
+  var m = E.mirrorX(out.prims, ab.w);
+  var s0 = out.prims.filter(function (p) { return p.t === "B"; })[0], s1 = m.filter(function (p) { return p.t === "B"; })[0];
+  s0.p.forEach(function (pt, i) {
+    for (var k = 0; k < 6; k += 2) assert.ok(near(s1.p[i][k], ab.w - pt[k]), "punto " + i + " campo " + k);
+    for (k = 1; k < 6; k += 2) assert.ok(near(s1.p[i][k], pt[k]));
+  });
+  m.forEach(function (p) { assert.ok(within(p, ab)); });
+});

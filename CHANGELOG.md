@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.2 (beta sperimentale)
+
+- Corretto lo specchio delle pagine sinistre sulle curve: le maniglie delle Bezier non venivano specchiate, quindi la spirale aurea si deformava. Ora si specchia l'intero blocco (ancore e maniglie).
+
 ## 1.4.1 (beta sperimentale)
 
 - Interruttore **Alterna pagine sinistra / destra** (sopra "Genera griglia"): le griglie sono disegnate per la pagina destra e sulle pagine sinistre vengono specchiate. Vale per tutte le griglie, quindi anche per il canone di Van de Graaf e per i margini interno/esterno.
