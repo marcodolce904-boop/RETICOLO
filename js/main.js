@@ -26,6 +26,7 @@
       layer: "Reticolo",
       lockAfter: false,
       idNative: true,
+      mirrorPages: false,
       live: false,
       target: "all",
       grid: E.defaults()
@@ -144,7 +145,7 @@
   function resolveTargets() {
     if (!S.doc) return [];
     var v = S.set.target, abs = S.doc.artboards;
-    var asAb = function (a) { return { i: a.i, w: a.w, h: a.h }; };
+    var asAb = function (a) { return { i: a.i, w: a.w, h: a.h, side: a.side }; };
     var asObj = function (o) { return { obj: o.id, w: o.w, h: o.h }; };
     if (v === "sel") return S.doc.selection ? [asObj(S.doc.selection)] : [];
     if (/^o:/.test(v)) {
@@ -159,6 +160,17 @@
     return abs.map(asAb);
   }
 
+  /**
+   * Pagina sinistra di un libro? Le griglie sono disegnate per la pagina destra (recto):
+   * sulle sinistre vengono specchiate. InDesign comunica il lato reale ("L", "R", "S" = pagina singola);
+   * altrove vale la numerazione: pagina 1 a destra, la 2 a sinistra, e così via.
+   */
+  function isLeftPage(ab) {
+    if (ab.obj || !S.set.mirrorPages) return false;
+    var side = ab.side || (S.doc.app === "IDSN" ? "S" : ab.i % 2 === 1 ? "L" : "R");
+    return side === "L";
+  }
+
   function isObjectTarget() { return S.set.target === "sel" || /^o:/.test(S.set.target); }
 
   function buildPayload() {
@@ -166,13 +178,14 @@
     resolveTargets().forEach(function (ab) {
       var out = E.build(S.grid, { w: ab.w, h: ab.h }, c);
       if (out.error) { err = out.error; return; }
-      var prims = out.prims, guides = null, native = null;
+      var left = isLeftPage(ab);
+      var prims = left ? E.mirrorX(out.prims, ab.w) : out.prims, guides = null, native = null;
       var p = currentParams();
       if (c.app === "IDSN" && !ab.obj && mode === "guides" && S.set.idNative && S.grid.type === "columns" && !(p.maxWidth > 0)) {
         var f = E.unitFactor(S.grid.unit, c);
         native = {
           count: Math.round(p.count), gutter: p.gutter * f,
-          t: p.margins.t * f, r: p.margins.r * f, b: p.margins.b * f, l: p.margins.l * f
+          t: p.margins.t * f, r: (left ? p.margins.l : p.margins.r) * f, b: p.margins.b * f, l: (left ? p.margins.r : p.margins.l) * f
         };
         prims = [];
       } else if (mode === "guides") {
@@ -626,6 +639,7 @@
   // ---------------------------------------------------------------- impostazioni
 
   function renderSettings() {
+    $("#mirrorPages").checked = !!S.set.mirrorPages;
     $$("[data-setting]").forEach(function (el) {
       var v = getPath(S.set, el.dataset.setting);
       if (el.type === "checkbox") el.checked = !!v;
@@ -735,6 +749,7 @@
     });
 
     // azioni
+    $("#mirrorPages").addEventListener("change", function (e) { S.set.mirrorPages = e.target.checked; persist(); liveGenerate(); });
     $("#live").addEventListener("change", function (e) { S.set.live = e.target.checked; persist(); if (S.set.live) generate(true); });
     $("#btnGenerate").addEventListener("click", generateNow);
     $("#btnClear").addEventListener("click", clearGrid);

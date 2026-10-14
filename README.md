@@ -1,6 +1,6 @@
 # Reticolo
 
-![status](https://img.shields.io/badge/status-experimental%20beta-orange) ![version](https://img.shields.io/badge/version-1.4.0--beta-blue) ![apps](https://img.shields.io/badge/Illustrator%20%C2%B7%20Photoshop%20%C2%B7%20InDesign-grey)
+![status](https://img.shields.io/badge/status-experimental%20beta-orange) ![version](https://img.shields.io/badge/version-1.4.1--beta-blue) ![apps](https://img.shields.io/badge/Illustrator%20%C2%B7%20Photoshop%20%C2%B7%20InDesign-grey)
 
 **Layout grids for Adobe Illustrator, Photoshop and InDesign, in one panel.**
 
@@ -67,6 +67,7 @@ Versioni supportate: Illustrator CC 2018+, Photoshop 2021+, InDesign 2021+.
   L'elenco si aggiorna quando torni sul pannello o con il pulsante accanto alla tendina.
 - **Target**: tutti gli artboard/pagine, quello attivo o uno specifico. In Photoshop sono supportati gli artboard. Se il documento non ne ha, la griglia copre tutta la tela.
 - **Unità**: px, mm o pt per ogni griglia. In Photoshop mm e pt usano la risoluzione del documento.
+- **Alterna pagine sinistra / destra**: specchia la griglia sulle pagine sinistre (canone di Van de Graaf, margini interno/esterno). In InDesign usa il lato reale della pagina; altrove la numerazione (1 destra, 2 sinistra). Non si applica alle griglie dentro oggetti.
 - **Anteprima live**: rigenera la griglia a ogni modifica.
 - **Frecce su/giù** nei campi numerici: ±1 (Maiusc ±10, Alt ±0,1). **Invio** genera la griglia.
 - **Occhio / lucchetto** in alto: mostra/nascondi e blocca/sblocca il livello della griglia.

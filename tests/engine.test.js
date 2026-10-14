@@ -348,3 +348,21 @@ test("tutti i preset si costruiscono su formati diversi", function () {
     });
   });
 });
+
+test("mirrorX: specchia linee, rettangoli e tracciati; due volte restituisce l'originale", function () {
+  var prims = [{ t: "L", a: [10, 0, 30, 50], b: 1 }, { t: "R", a: [100, 5, 300, 400] }, { t: "P", p: [[72, 60], [828, 60]] }, { t: "B", p: [[0, 0], [10, 20]] }];
+  var m = E.mirrorX(prims, 900);
+  assert.deepEqual(m[0].a, [890, 0, 870, 50]);
+  assert.equal(m[0].b, 1, "mantiene lo stile");
+  assert.deepEqual(m[1].a, [500, 5, 300, 400]);
+  assert.deepEqual(m[2].p, [[828, 60], [72, 60]]);
+  assert.deepEqual(E.mirrorX(m, 900), prims);
+  assert.equal(prims[0].a[0], 10, "non modifica l'originale");
+});
+
+test("canone Van de Graaf specchiato = blocco della pagina sinistra (esterno a sinistra 2/9)", function () {
+  var out = E.build({ type: "comp", comp: { family: "classic", variant: "canon" } }, { w: 900, h: 600 }, AI);
+  var r = out.prims.filter(function (p) { return p.t === "R"; })[0];
+  var m = E.mirrorX([r], 900)[0].a;
+  assert.ok(near(m[0] + m[2], 900 - r.a[0]));
+});

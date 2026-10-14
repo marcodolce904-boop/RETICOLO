@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.1 (beta sperimentale)
+
+- Interruttore **Alterna pagine sinistra / destra** (sopra "Genera griglia"): le griglie sono disegnate per la pagina destra e sulle pagine sinistre vengono specchiate. Vale per tutte le griglie, quindi anche per il canone di Van de Graaf e per i margini interno/esterno.
+- InDesign usa il lato reale della pagina (pagine affiancate), le pagine singole non vengono specchiate. Con le colonne native i margini destro e sinistro si scambiano. Illustrator e Photoshop usano la numerazione: 1 destra, 2 sinistra.
+
 ## 1.4.0 (beta sperimentale)
 
 - Nuova famiglia **Layout** in Comp: diagramma di Gutenberg, lettura a Z, lettura a F, lista + dettaglio (1/3 + 2/3), pannello di supporto (2/3 + 1/3), app shell.

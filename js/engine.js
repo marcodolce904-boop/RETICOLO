@@ -793,6 +793,18 @@
    * @param ab    { w, h } dimensioni artboard in unità native
    * @param ctx   { app: "ILST"|"PHXS"|"IDSN", res: dpi (solo Photoshop) }
    */
+  /** Specchia le primitive in orizzontale dentro un riquadro largo W (pagine sinistre di un libro). */
+  function mirrorX(prims, W) {
+    return prims.map(function (p) {
+      var q = {}, k;
+      for (k in p) q[k] = p[k];
+      if (p.t === "L") q.a = [W - p.a[0], p.a[1], W - p.a[2], p.a[3]];
+      else if (p.t === "R") q.a = [W - p.a[0] - p.a[2], p.a[1], p.a[2], p.a[3]];
+      else q.p = p.p.map(function (pt) { var c = pt.slice(); c[0] = W - c[0]; return c; });
+      return q;
+    });
+  }
+
   function build(grid, ab, ctx) {
     var g = normalize(grid);
     var f = unitFactor(g.unit, ctx);
@@ -865,7 +877,7 @@
     defaults: defaults,
     normalize: normalize,
     unitFactor: unitFactor,
-    build: build,
+    build: build, mirrorX: mirrorX,
     toGuides: toGuides,
     flattenAll: flattenAll,
     flattenBezier: flattenBezier,

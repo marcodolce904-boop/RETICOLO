@@ -173,7 +173,12 @@
       var list = [], pages = d.pages.everyItem().getElements(), active = 0;
       for (var i = 0; i < pages.length; i++) {
         var o = pageOrigin(pages[i]);
-        list.push({ i: pages[i].documentOffset, name: "Pag. " + pages[i].name, w: o.w, h: o.h });
+        var side = "S";
+        try {
+          if (pages[i].side === PageSideOptions.LEFT_HAND) side = "L";
+          else if (pages[i].side === PageSideOptions.RIGHT_HAND) side = "R";
+        } catch (eSide) { /* lato non disponibile: pagina singola */ }
+        list.push({ i: pages[i].documentOffset, name: "Pag. " + pages[i].name, w: o.w, h: o.h, side: side });
       }
       try { active = app.activeWindow.activePage.documentOffset; } catch (e) { /* nessuna finestra layout */ }
       var objects = [], selection = null, layerName = "";
