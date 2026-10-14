@@ -14,6 +14,8 @@ Estensione CEP (pannello HTML + ExtendScript) per Illustrator, Photoshop e InDes
 
 ## Figma
 
+Il plugin Figma è un prodotto a parte dall'estensione Adobe: vive solo in `figma/` (più `tools/build-figma.js`) e l'installer Windows non lo copia. L'estensione CEP, gli script `host/*.jsx` e il loro funzionamento non cambiano. Pannello e motore sono condivisi, quindi ogni modifica a `index.html`, `css/` o `js/` va provata in entrambi.
+
 - `figma/code.js` (sandbox) legge i frame e disegna, senza geometria. `figma/ui.html` è **generato**: dopo ogni modifica a `index.html`, `css/` o `js/` esegui `npm run build:figma` (il test `figma-host` fallisce se il file è vecchio).
 - Il pannello parla con `code.js` per messaggi (`call`, `store`, `ready`, `init`, `result`, `event`) tramite `js/host.js`. Niente `localStorage` nell'iframe di Figma: l'archivio passa da `clientStorage`.
 - App `FIGMA`: artboard = frame, `native.figma` = layout grid nativi (solo se esiste un equivalente esatto, altrimenti linee).

@@ -10,7 +10,7 @@ echo.
 
 if exist "%DEST%" rmdir /s /q "%DEST%"
 mkdir "%DEST%"
-robocopy "%SRC%." "%DEST%" /E /NFL /NDL /NJH /NJS /XD tests tools .git .github node_modules /XF install-windows.bat uninstall-windows.bat package.json *.md .gitignore .gitattributes >nul
+robocopy "%SRC%." "%DEST%" /E /NFL /NDL /NJH /NJS /XD tests tools figma .git .github node_modules /XF install-windows.bat uninstall-windows.bat package.json *.md .gitignore .gitattributes >nul
 if errorlevel 8 (
   echo  ERRORE: copia dei file non riuscita.
   pause
