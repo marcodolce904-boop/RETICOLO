@@ -195,6 +195,7 @@ button, input, select { font: inherit; color: inherit; }
 
 .subtabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 2px;
   border-bottom: 1px solid var(--line);
   margin: 2px 0 10px;

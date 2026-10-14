@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0 (beta sperimentale)
+
+- Nuova famiglia **Logo** in Comp: logo in alto, logo a sinistra (anche con le distanze in X), typelogo, logo con tagline, linee tipografiche.
+- Tutte le distanze sono multipli di **X**: con X = 0 il lockup si adatta al riquadro, con X > 0 sono esatte (misura la tua lettera e scrivila nel campo). Spazio libero, simbolo, distanza e logotipo sono modificabili.
+- 8 nuovi preset (57 in totale), categoria Logo.
+- `docs/logo-layouts.md`: come funzionano i layout, cosa è standard e cosa è regola pratica, con le fonti.
+
 ## 1.2.0 (beta sperimentale)
 
 - **Griglie dentro gli oggetti chiusi.** Nella tendina compaiono "Oggetto selezionato" e gli oggetti chiusi del livello attivo; la griglia viene costruita sul riquadro dell'oggetto e ritagliata sulla sua forma.

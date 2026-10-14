@@ -176,3 +176,71 @@ test("prospettiva: i raggi partono dai punti di fuga sull'orizzonte", function (
   var rays = out.prims.slice(1);
   assert.ok(rays.every(function (p) { return near(p.a[0], 500) && near(p.a[1], 210); }));
 });
+
+// ---------------------------------------------------------------- layout logo (unita' X)
+
+function logoOf(variant, extra, ab) {
+  var comp = { family: "logo", variant: variant };
+  Object.keys(extra || {}).forEach(function (k) { comp[k] = extra[k]; });
+  return E.build({ type: "comp", comp: comp }, ab || { w: 800, h: 500 }, AI);
+}
+
+test("logo a sinistra: con X esatto ogni distanza e' un multiplo di X", function () {
+  var out = logoOf("logoLeftX", { x: 20 });
+  var outer = out.prims[0].a, inner = out.prims[1].a, sym = out.prims[2].a, word = out.prims[3].a;
+  assert.deepEqual([outer[2], outer[3]], [340, 120], "(2 + 4 + 1 + 10) x (2 + 4) unita'");
+  assert.deepEqual([outer[0], outer[1]], [230, 190], "centrato nel riquadro");
+  assert.deepEqual([inner[0] - outer[0], inner[1] - outer[1]], [20, 20], "spazio libero 1X");
+  assert.deepEqual([sym[2], sym[3]], [80, 80], "simbolo 4X");
+  assert.equal(word[0] - (sym[0] + sym[2]), 20, "distanza simbolo-logotipo 1X");
+  assert.deepEqual([word[2], word[3]], [200, 40], "logotipo 10X x 2X");
+  assert.equal(word[1] + word[3] / 2, sym[1] + sym[3] / 2, "centrati sullo stesso asse");
+  var squares = out.prims.filter(function (p) { return p.t === "R" && p.a[2] === 20 && p.a[3] === 20; });
+  assert.equal(squares.length, 5, "quattro lati + la distanza simbolo-logotipo");
+});
+
+test("logo in alto: simbolo e logotipo centrati sullo stesso asse verticale", function () {
+  var out = logoOf("logoTop", { x: 10, sym: 4, ww: 12, wh: 2, gap: 1.5 });
+  var sym = out.prims[2].a, word = out.prims[3].a;
+  assert.equal(sym[0] + sym[2] / 2, word[0] + word[2] / 2);
+  assert.equal(word[1] - (sym[1] + sym[3]), 15, "distanza 1,5X");
+});
+
+test("spazio libero 1,5X e riflessione orizzontale", function () {
+  var a = logoOf("logoLeft", { x: 20, clear: 1.5 });
+  assert.equal(a.prims[1].a[0] - a.prims[0].a[0], 30);
+  var left = logoOf("logoLeft", { x: 20 }), right = logoOf("logoLeft", { x: 20, flipH: true });
+  assert.ok(left.prims[2].a[0] < left.prims[3].a[0], "normale: simbolo a sinistra");
+  assert.ok(right.prims[2].a[0] > right.prims[3].a[0], "riflesso: simbolo a destra");
+});
+
+test("X automatico: il lockup riempie il riquadro e non lo supera", function () {
+  [{ w: 800, h: 500 }, { w: 300, h: 900 }, { w: 120, h: 120 }].forEach(function (ab) {
+    ["logoTop", "logoLeftX", "typelogo", "logoTagline"].forEach(function (v) {
+      var out = logoOf(v, {}, ab), o = out.prims[0].a;
+      assert.ok(o[0] >= -0.01 && o[1] >= -0.01 && o[0] + o[2] <= ab.w + 0.01 && o[1] + o[3] <= ab.h + 0.01, v);
+      assert.ok(near(o[2], ab.w, 0.05) || near(o[3], ab.h, 0.05), v + " tocca almeno due lati");
+    });
+  });
+  assert.ok(logoOf("logoLeftX").info.x > 0, "l'X usato viene restituito");
+});
+
+test("X troppo grande per il riquadro: errore invece di uscire dai bordi", function () {
+  assert.equal(logoOf("logoLeftX", { x: 60 }).error, "tooNarrow");
+});
+
+test("typelogo: linea di base e altezza della x dentro il logotipo", function () {
+  var out = logoOf("typelogo", { x: 20, ww: 10, wh: 2 });
+  var word = out.prims[2].a;
+  var bold = out.prims.filter(function (p) { return p.b; })[0].a;
+  assert.equal(bold[1], word[1] + word[3], "linea di base sul bordo inferiore");
+  var xh = out.prims.filter(function (p) { return p.t === "L" && !p.b && p.a[1] === p.a[3] && p.a[1] > word[1] && p.a[1] < word[1] + word[3]; })[0];
+  assert.ok(near(word[1] + word[3] - xh.a[1], word[3] * 0.7, 0.01), "x-height al 70% delle maiuscole");
+});
+
+test("type (linee): cinque linee, la linea di base e' in grassetto", function () {
+  var out = logoOf("typeLines", {}, { w: 600, h: 400 });
+  assert.equal(out.prims.length, 5);
+  assert.equal(out.prims.filter(function (p) { return p.b; }).length, 1);
+  assert.deepEqual(out.prims.map(function (p) { return p.a[1]; }), [0, 24, 104, 312, 400]);
+});

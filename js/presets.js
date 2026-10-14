@@ -64,6 +64,15 @@
     { cat: "comp", name: { it: "Griglia Phi", en: "Phi grid" }, grid: { type: "comp", unit: "px", comp: { family: "classic", variant: "phi" } } },
     { cat: "comp", name: { it: "Simmetria dinamica (armatura 14)", en: "Dynamic symmetry (14-line armature)" }, grid: { type: "comp", unit: "px", comp: { family: "symmetry", variant: "armature" } } },
     { cat: "comp", name: { it: "Isometrica 40 px", en: "Isometric 40 px" }, grid: { type: "comp", unit: "px", comp: { family: "geom", variant: "isometric", spacing: 40 } } },
+    // ---------------------------------------------------------------- Logo (lockup in unita' X)
+    { cat: "logo", name: { it: "Logo in alto, spazio libero 1X", en: "Logo on top, 1X clear space" }, grid: { type: "comp", unit: "px", comp: { family: "logo", variant: "logoTop" } } },
+    { cat: "logo", name: { it: "Logo in alto con distanze X", en: "Logo on top with X distances" }, grid: { type: "comp", unit: "px", comp: { family: "logo", variant: "logoTopX" } } },
+    { cat: "logo", name: { it: "Logo a sinistra, spazio libero 1X", en: "Logo on the left, 1X clear space" }, grid: { type: "comp", unit: "px", comp: { family: "logo", variant: "logoLeft" } } },
+    { cat: "logo", name: { it: "Logo a sinistra con distanze X", en: "Logo on the left with X distances" }, grid: { type: "comp", unit: "px", comp: { family: "logo", variant: "logoLeftX" } } },
+    { cat: "logo", name: { it: "Logo a sinistra, spazio libero 1,5X", en: "Logo on the left, 1.5X clear space" }, grid: { type: "comp", unit: "px", comp: { family: "logo", variant: "logoLeftX", clear: 1.5 } } },
+    { cat: "logo", name: "Typelogo", grid: { type: "comp", unit: "px", comp: { family: "logo", variant: "typelogo" } } },
+    { cat: "logo", name: { it: "Logo + tagline", en: "Logo + tagline" }, grid: { type: "comp", unit: "px", comp: { family: "logo", variant: "logoTagline" } } },
+    { cat: "logo", name: { it: "Type: linee tipografiche", en: "Type: typographic lines" }, grid: { type: "comp", unit: "px", comp: { family: "logo", variant: "typeLines" } } },
     // ---------------------------------------------------------------- Studio (logo, icone, illustrazione)
     { cat: "studio", name: { it: "Logo: cerchi aurei", en: "Logo: golden circles" }, grid: { type: "comp", unit: "px", comp: { family: "studio", variant: "goldenCircles" } } },
     { cat: "studio", name: { it: "Icona 24: keyline", en: "Icon 24: keylines" }, grid: { type: "comp", unit: "px", comp: { family: "studio", variant: "keylines" } } },
@@ -84,5 +93,5 @@
     p.tags = [p.cat];
   });
 
-  return { CATEGORIES: ["web", "mobile", "print", "bento", "baseline", "comp", "studio", "social"], list: list };
+  return { CATEGORIES: ["web", "mobile", "print", "bento", "baseline", "comp", "logo", "studio", "social"], list: list };
 });

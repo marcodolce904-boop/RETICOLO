@@ -360,6 +360,7 @@
     if (S.grid.type === "columns" && i.uneven) el.textContent = t("readout.cols", { w: i.widths.map(fmt).join(" / ") + " " + u });
     else if (S.grid.type === "columns") el.textContent = t("readout.col", { w: fmt(i.colW) + " " + u });
     else if (S.grid.type === "modular") el.textContent = t("readout.mod", { w: fmt(i.colW), h: fmt(i.rowH) + " " + u, c: i.cols, r: i.rows });
+    else if (i.x !== undefined) el.textContent = t("readout.x", { x: fmt(i.x) + " " + u, n: i.lines });
     else el.textContent = t("readout.lines", { n: i.lines });
   }
 
@@ -391,6 +392,7 @@
     $$("[data-show]").forEach(function (el) {
       var rule = el.dataset.show, ok;
       if (rule === "comp.spacing") ok = !!E.USES_SPACING[S.grid.comp.variant];
+      else if (rule === "comp.logo") ok = !!E.USES_LOGO[S.grid.comp.variant];
       else if (rule === "comp.count") ok = !!E.USES_COUNT[S.grid.comp.variant];
       else { var kv = rule.split("="); ok = String(getPath(S.grid, kv[0])) === kv[1]; }
       el.hidden = !ok;

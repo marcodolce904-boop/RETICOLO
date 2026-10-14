@@ -34,7 +34,7 @@
       columns: { count: 12, gutter: 24, maxWidth: 0, ratios: "", lead: 0, margins: margins(0, 24, 0, 24) },
       modular: { cols: 4, rows: 4, gx: 16, gy: 16, sizing: "fit", mw: 120, mh: 120, lead: 0, margins: margins(24, 24, 24, 24) },
       baseline: { dir: "h", spacing: 8, boldEvery: 0, offset: 0, margins: margins(0, 0, 0, 0) },
-      comp: { family: "classic", variant: "thirds", spacing: 40, count: 12, flipH: false, flipV: false, margins: margins(0, 0, 0, 0) }
+      comp: { family: "classic", variant: "thirds", spacing: 40, count: 12, flipH: false, flipV: false, x: 0, clear: 1, sym: 4, ww: 10, wh: 2, gap: 1, margins: margins(0, 0, 0, 0) }
     };
   }
 
@@ -381,12 +381,99 @@
     return out;
   }
 
+  // ---- Logo: lockup costruiti in unita' X
+  // X e' l'unita' di misura del logo (altezza di una lettera, larghezza di un elemento...): ogni distanza e'
+  // un multiplo di X. Con x = 0 l'unita' si adatta al riquadro; con x > 0 e' esatta (in px, mm o pt).
+
+  /** Quadrato di lato 1X piu' vicino al logo, al centro di ogni lato dello spazio libero. */
+  function edgeSquares(c, iw, ih) {
+    return [
+      [c - 1, c + ih / 2 - 0.5], [c + iw, c + ih / 2 - 0.5],
+      [c + iw / 2 - 0.5, c - 1], [c + iw / 2 - 0.5, c + ih]
+    ];
+  }
+
+  function logoLayout(v, p) {
+    var c = Math.max(1, +p.clear || 1), S = Math.max(0.5, +p.sym || 4), ww = Math.max(1, +p.ww || 10);
+    var wh = Math.max(0.5, +p.wh || 2), gap = Math.max(0, p.gap === undefined ? 1 : +p.gap);
+    var lay = { c: c, rects: [], lines: [], squares: [], bold: [] }, iw, ih, sym, word, k;
+    var withX = v === "logoTopX" || v === "logoLeftX" || v === "typelogo";
+
+    if (v === "logoTop" || v === "logoTopX") {
+      iw = Math.max(S, ww); ih = S + gap + wh;
+      sym = { x: c + (iw - S) / 2, y: c, w: S, h: S };
+      word = { x: c + (iw - ww) / 2, y: c + S + gap, w: ww, h: wh };
+      lay.rects.push(sym, word);
+      lay.lines.push([c + iw / 2, c, c + iw / 2, c + ih]);
+      if (withX && gap >= 1) lay.squares.push([c + iw / 2 - 0.5, c + S + (gap - 1) / 2]);
+    } else if (v === "logoLeft" || v === "logoLeftX") {
+      iw = S + gap + ww; ih = Math.max(S, wh);
+      sym = { x: c, y: c + (ih - S) / 2, w: S, h: S };
+      word = { x: c + S + gap, y: c + (ih - wh) / 2, w: ww, h: wh };
+      lay.rects.push(sym, word);
+      lay.lines.push([c, c + ih / 2, c + iw, c + ih / 2]);
+      if (withX && gap >= 1) lay.squares.push([c + S + (gap - 1) / 2, c + ih / 2 - 0.5]);
+    } else if (v === "logoTagline") {
+      // tagline alta circa un terzo del logotipo (regola pratica, non uno standard)
+      var th = wh / 3, tg = 0.5, group = wh + tg + th;
+      iw = S + gap + ww; ih = Math.max(S, group);
+      sym = { x: c, y: c + (ih - S) / 2, w: S, h: S };
+      var wy = c + (ih - group) / 2;
+      word = { x: c + S + gap, y: wy, w: ww, h: wh };
+      lay.rects.push(sym, word, { x: word.x, y: wy + wh + tg, w: ww, h: th });
+    } else {
+      // typelogo: solo logotipo, con linea di base, altezza della x (circa 70% delle maiuscole) e maiuscole
+      iw = ww; ih = wh;
+      word = { x: c, y: c, w: ww, h: wh };
+      lay.rects.push(word);
+      lay.bold.push([c, c + wh, c + ww, c + wh]);
+      lay.lines.push([c, c + wh * 0.3, c + ww, c + wh * 0.3]);
+    }
+    if (withX) edgeSquares(c, iw, ih).forEach(function (q) { lay.squares.push(q); });
+    lay.iw = iw; lay.ih = ih; lay.tw = 2 * c + iw; lay.th = 2 * c + ih;
+    return lay;
+  }
+
+  function buildLogo(v, fr, p, f, mp) {
+    var lay = logoLayout(v, p), W = fr.w, H = fr.h, X = p.x > 0 ? p.x * f : Math.min(W / lay.tw, H / lay.th);
+    if (X <= 0.01 || lay.tw * X > W + EPS || lay.th * X > H + EPS) return { error: "tooNarrow" };
+    var ox = (W - lay.tw * X) / 2, oy = (H - lay.th * X) / 2, c = lay.c, out = [];
+    function pt(x, y) { return mp(ox + x * X, oy + y * X); }
+    function rect(x, y, w, h) {
+      var a = pt(x, y), b = pt(x + w, y + h);
+      return R(Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
+    }
+    function line(a, bold) { var m = pt(a[0], a[1]), n = pt(a[2], a[3]); return L2(m, n, bold); }
+    function L2(m, n, bold) { return L(m[0], m[1], n[0], n[1], bold); }
+    out.push(rect(0, 0, lay.tw, lay.th));                 // confine dello spazio libero
+    out.push(rect(c, c, lay.iw, lay.ih));                 // area del logo
+    lay.rects.forEach(function (r) { out.push(rect(r.x, r.y, r.w, r.h)); });
+    lay.lines.forEach(function (a) { out.push(line(a, false)); });
+    lay.bold.forEach(function (a) { out.push(line(a, true)); });
+    lay.squares.forEach(function (q) { out.push(rect(q[0], q[1], 1, 1)); });
+    return { prims: out, x: X / f };
+  }
+
+  /**
+   * Linee tipografiche tipiche, in frazioni dell'altezza totale (ascendente in alto, discendente in basso):
+   * ascendente, maiuscole, altezza della x, linea di base, discendente. Sono proporzioni medie dei caratteri
+   * latini: vanno adattate al carattere reale.
+   */
+  var TYPE_LINES = [0, 0.06, 0.26, 0.78, 1];
+
+  function buildTypeLines(fr, mp) {
+    return TYPE_LINES.map(function (t, i) {
+      var a = mp(0, t * fr.h), b = mp(fr.w, t * fr.h);
+      return L(a[0], a[1], b[0], b[1], i === 3);
+    });
+  }
+
   function buildComp(p, ab, f) {
     var fr = frameOf(ab, p.margins, f);
     if (fr.w <= 0 || fr.h <= 0) return { error: "tooNarrow" };
     var W = fr.w, H = fr.h, mp = mapper(fr, p.flipH, p.flipV);
     var local = { x: 0, y: 0, w: W, h: H };
-    var prims = [], i, s, v = p.variant;
+    var prims = [], i, s, v = p.variant, logoX;
     function push(x) { if (x) prims.push(x); }
     function vline(u) { push(seg(mp, u * W, 0, u * W, H)); }
     function hline(u) { push(seg(mp, 0, u * H, W, u * H)); }
@@ -589,12 +676,21 @@
         }
         break;
       }
+      case "logoTop": case "logoTopX": case "logoLeft": case "logoLeftX": case "logoTagline": case "typelogo": {
+        var lg = buildLogo(v, { x: 0, y: 0, w: W, h: H }, p, f, mp);
+        if (lg.error) return lg;
+        prims = lg.prims; logoX = lg.x;
+        break;
+      }
+      case "typeLines":
+        prims = buildTypeLines({ x: 0, y: 0, w: W, h: H }, mp);
+        break;
       default:
         return { error: "unknownVariant" };
     }
     if (prims.length > 6000) return { error: "tooDense" };
     if (hasMargins(p.margins)) prims = frameLines(fr).concat(prims);
-    return { prims: prims, frame: fr, info: { lines: prims.length } };
+    return { prims: prims, frame: fr, info: { lines: prims.length, x: logoX } };
   }
 
   /**
@@ -658,16 +754,19 @@
     rabat: ["rabatment", "rabatDiag", "goldenRects"],
     geom: ["isometric", "triangular", "hexagonal", "pentagon", "radial", "concentric", "symmetry"],
     studio: ["goldenCircles", "keylines", "persp1", "persp2", "persp3"],
-    social: ["igStory", "igReel", "tiktok", "igProfile", "ytThumb", "ytBanner"]
+    social: ["igStory", "igReel", "tiktok", "igProfile", "ytThumb", "ytBanner"],
+    logo: ["logoTop", "logoTopX", "logoLeft", "logoLeftX", "typelogo", "logoTagline", "typeLines"]
   };
   var USES_SPACING = { isometric: 1, triangular: 1, hexagonal: 1, concentric: 1 };
   var USES_COUNT = { radial: 1, persp1: 1, persp2: 1, persp3: 1 };
+  var USES_LOGO = { logoTop: 1, logoTopX: 1, logoLeft: 1, logoLeftX: 1, typelogo: 1, logoTagline: 1 };
 
   return {
     PHI: PHI,
     VARIANTS: VARIANTS,
     USES_SPACING: USES_SPACING,
     USES_COUNT: USES_COUNT,
+    USES_LOGO: USES_LOGO,
     defaults: defaults,
     normalize: normalize,
     unitFactor: unitFactor,
