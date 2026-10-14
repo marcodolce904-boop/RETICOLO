@@ -34,7 +34,7 @@
       columns: { count: 12, gutter: 24, maxWidth: 0, ratios: "", lead: 0, margins: margins(0, 24, 0, 24) },
       modular: { cols: 4, rows: 4, gx: 16, gy: 16, sizing: "fit", mw: 120, mh: 120, lead: 0, margins: margins(24, 24, 24, 24) },
       baseline: { dir: "h", spacing: 8, boldEvery: 0, offset: 0, margins: margins(0, 0, 0, 0) },
-      comp: { family: "classic", variant: "thirds", spacing: 40, count: 12, flipH: false, flipV: false, x: 0, clear: 1, sym: 4, ww: 10, wh: 2, gap: 1, margins: margins(0, 0, 0, 0) }
+      comp: { family: "classic", variant: "thirds", spacing: 40, count: 12, flipH: false, flipV: false, x: 0, clear: 1, sym: 4, ww: 10, wh: 2, gap: 1, items: "6x4 3x2 3x2 6x2 4x2/4/2 4x2/4/2 4x2/8/4 6x2/4/4 6x2/4/4", wgap: 16, wrow: 0, wmin: 240, wrows: 3, margins: margins(0, 0, 0, 0) }
     };
   }
 
@@ -490,6 +490,140 @@
     });
   }
 
+
+  // ---------------------------------------------------------------- layout web responsive
+
+  // Classi di larghezza come le window size classes di Material 3: compact < 600, medium < 840, expanded.
+  var BP_MEDIUM = 600, BP_EXPANDED = 840, BENTO_COLS = { expanded: 12, medium: 8, compact: 4 };
+  var MAX_BENTO_ITEMS = 60, MAX_BENTO_SPAN = 12;
+
+  function widthClass(w) { return w >= BP_EXPANDED ? "expanded" : w >= BP_MEDIUM ? "medium" : "compact"; }
+
+  /**
+   * Blocchi del bento: "6x4" = 6 colonne x 4 righe (su 12 colonne); "6x4/4/2" aggiunge le larghezze
+   * esatte su tablet (8 colonne) e su mobile (4 colonne). Restituisce null se il testo non è valido.
+   */
+  function parseBento(str) {
+    if (typeof str !== "string" || !str.trim()) return [];
+    var toks = str.trim().split(/[\s,;]+/), out = [];
+    if (toks.length > MAX_BENTO_ITEMS) return null;
+    for (var i = 0; i < toks.length; i++) {
+      var m = /^(\d+)[x×*](\d+)(?:\/(\d+))?(?:\/(\d+))?$/i.exec(toks[i]);
+      if (!m) return null;
+      var it = { w: parseInt(m[1], 10), h: parseInt(m[2], 10), t: m[3] ? parseInt(m[3], 10) : 0, m: m[4] ? parseInt(m[4], 10) : 0 };
+      if (it.w < 1 || it.h < 1 || it.w > MAX_BENTO_SPAN || it.h > MAX_BENTO_SPAN) return null;
+      out.push(it);
+    }
+    return out;
+  }
+
+  /** Larghezza in colonne di un blocco per la classe corrente: esatta se indicata, altrimenti in proporzione. */
+  function bentoSpan(it, cls) {
+    var cols = BENTO_COLS[cls], w;
+    if (cls === "medium" && it.t) w = it.t;
+    else if (cls === "compact" && it.m) w = it.m;
+    else w = Math.round(it.w * cols / BENTO_COLS.expanded);
+    return Math.max(1, Math.min(cols, w));
+  }
+
+  /** Impacchetta i blocchi nell'ordine, come grid-auto-flow: dense (ogni blocco nel primo posto libero). */
+  function packBento(items, cls) {
+    var cols = BENTO_COLS[cls], occ = [], rows = 0, placed = [];
+    function free(r, c, w, h) {
+      for (var y = r; y < r + h; y++) for (var x = c; x < c + w; x++) if (occ[y] && occ[y][x]) return false;
+      return true;
+    }
+    items.forEach(function (it) {
+      var w = bentoSpan(it, cls), h = it.h, r = 0, c, done = false;
+      while (!done) {
+        for (c = 0; c + w <= cols; c++) {
+          if (free(r, c, w, h)) { done = true; break; }
+        }
+        if (!done) r++;
+      }
+      for (var y = r; y < r + h; y++) {
+        occ[y] = occ[y] || [];
+        for (var x = c; x < c + w; x++) occ[y][x] = 1;
+      }
+      rows = Math.max(rows, r + h);
+      placed.push({ c: c, r: r, w: w, h: h });
+    });
+    return { cols: cols, rows: rows, items: placed };
+  }
+
+  /** Celle uguali in una griglia c x r dentro il riquadro dato. */
+  function evenCells(x, y, w, h, c, r, g) {
+    var cw = (w - (c - 1) * g) / c, rh = (h - (r - 1) * g) / r, out = [];
+    for (var j = 0; j < r; j++) for (var i = 0; i < c; i++) out.push([x + i * (cw + g), y + j * (rh + g), cw, rh]);
+    return out;
+  }
+
+  /** Layout web: restituisce rettangoli [x, y, w, h] nel riquadro locale W x H. */
+  function webRects(v, p, abw, W, H, g) {
+    var cls = widthClass(abw), out = [];
+    if (v === "bento") {
+      var items = parseBento(p.items);
+      if (items === null) return { error: "badItems" };
+      if (!items.length) return { error: "badItems" };
+      var pk = packBento(items, cls);
+      var cw = (W - (pk.cols - 1) * g) / pk.cols;
+      if (cw <= 0) return { error: "tooNarrow" };
+      var rh = p.wrow > 0 ? p.wrow : (H - (pk.rows - 1) * g) / pk.rows;
+      if (rh <= 0) return { error: "tooNarrow" };
+      pk.items.forEach(function (b) {
+        var r = [b.c * (cw + g), b.r * (rh + g), b.w * cw + (b.w - 1) * g, b.h * rh + (b.h - 1) * g];
+        if (r[1] + r[3] <= H + EPS) out.push(r); // con altezza fissa i blocchi che escono dal riquadro non si disegnano
+      });
+      return { rects: out };
+    }
+    if (v === "autoFit") {
+      var minW = Math.max(1, p.wmin), c = Math.max(1, Math.min(24, Math.floor((W + g) / (minW + g)))), rows = Math.max(1, Math.round(p.wrows));
+      if (c * rows > MAX_CELLS) return { error: "tooDense" };
+      var rowH = p.wrow > 0 ? p.wrow : (H - (rows - 1) * g) / rows;
+      if (rowH <= 0) return { error: "tooNarrow" };
+      var all = evenCells(0, 0, W, rowH * rows + (rows - 1) * g, c, rows, g);
+      return { rects: all.filter(function (r) { return r[1] + r[3] <= H + EPS; }) };
+    }
+    if (v === "holyGrail") {
+      var hd = H / 10, ft = H / 12, sbw = W / 6, mid = H - hd - ft - 2 * g;
+      if (cls === "expanded") out = [[0, 0, W, hd], [0, hd + g, sbw, mid], [sbw + g, hd + g, W - 2 * sbw - 2 * g, mid], [W - sbw, hd + g, sbw, mid], [0, H - ft, W, ft]];
+      else if (cls === "medium") {
+        var asd = H / 8, mm = mid - asd - g, nw = W / 4;
+        out = [[0, 0, W, hd], [0, hd + g, nw, mm], [nw + g, hd + g, W - nw - g, mm], [0, hd + g + mm + g, W, asd], [0, H - ft, W, ft]];
+      } else {
+        var strip = H / 14, as2 = H / 9, mc = H - hd - ft - strip - as2 - 4 * g;
+        out = [[0, 0, W, hd], [0, hd + g, W, strip], [0, hd + strip + 2 * g, W, mc], [0, hd + strip + mc + 3 * g, W, as2], [0, H - ft, W, ft]];
+      }
+      return { rects: out };
+    }
+    if (v === "heroCards") {
+      var hero = H * 0.42, cc = cls === "expanded" ? 4 : cls === "medium" ? 2 : 1, cr = Math.ceil(4 / cc);
+      out = [[0, 0, W, hero]];
+      evenCells(0, hero + g, W, H - hero - g, cc, cr, g).slice(0, 4).forEach(function (r) { out.push(r); });
+      return { rects: out };
+    }
+    if (v === "split") {
+      if (cls === "compact") return { rects: [[0, 0, W, H * 0.6 - g / 2], [0, H * 0.6 + g / 2, W, H * 0.4 - g / 2]] };
+      var lw = (W - g) * 7 / 12;
+      return { rects: [[0, 0, lw, H], [lw + g, 0, W - lw - g, H]] };
+    }
+    if (v === "dashboard") {
+      var sw = cls === "expanded" ? W / 7 : cls === "medium" ? W / 14 : 0, x0 = sw ? sw + g : 0, cwid = W - x0, top = H / 12;
+      if (sw) out.push([0, 0, sw, H]);
+      out.push([x0, 0, cwid, top]);
+      var kc = cls === "compact" ? 2 : 4, kr = cls === "compact" ? 2 : 1, kh = cls === "compact" ? H / 5 : H / 7;
+      evenCells(x0, top + g, cwid, kh, kc, kr, g).forEach(function (r) { out.push(r); });
+      var y1 = top + g + kh + g, rest = H - y1;
+      if (cls === "compact") out.push([x0, y1, cwid, rest * 0.5 - g / 2], [x0, y1 + rest * 0.5 + g / 2, cwid, rest * 0.5 - g / 2]);
+      else {
+        var cwl = (cwid - g) * 2 / 3;
+        out.push([x0, y1, cwl, rest * 0.5 - g / 2], [x0 + cwl + g, y1, cwid - cwl - g, rest * 0.5 - g / 2], [x0, y1 + rest * 0.5 + g / 2, cwid, rest * 0.5 - g / 2]);
+      }
+      return { rects: out };
+    }
+    return { error: "unknownType" };
+  }
+
   function buildComp(p, ab, f) {
     var fr = frameOf(ab, p.margins, f);
     if (fr.w <= 0 || fr.h <= 0) return { error: "tooNarrow" };
@@ -748,6 +882,15 @@
         }
         break;
       }
+      case "bento": case "autoFit": case "holyGrail": case "heroCards": case "split": case "dashboard": {
+        var wr = webRects(v, p, ab.w, W, H, Math.max(0, p.wgap) * f);
+        if (wr.error) return { error: wr.error };
+        wr.rects.forEach(function (q) {
+          var a = mp(q[0], q[1]), b = mp(q[0] + q[2], q[1] + q[3]);
+          prims.push(R(Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1])));
+        });
+        break;
+      }
       case "vesica": {
         var vr = Math.min(W / 3, H / 2), vcx = fr.x + W / 2, vcy = fr.y + H / 2, hh = vr * Math.sqrt(3) / 2;
         prims.push(circleBezier(vcx - vr / 2, vcy, vr), circleBezier(vcx + vr / 2, vcy, vr));
@@ -866,10 +1009,14 @@
     geom: ["isometric", "triangular", "hexagonal", "pentagon", "radial", "concentric", "symmetry"],
     studio: ["goldenCircles", "keylines", "vesica", "circlesTri", "circlesSquare", "androidIcon", "persp1", "persp2", "persp3"],
     layout: ["gutenberg", "zPattern", "fPattern", "listDetail", "supportingPane", "appShell"],
+    web: ["bento", "autoFit", "holyGrail", "heroCards", "split", "dashboard"],
     social: ["igStory", "igReel", "tiktok", "igProfile", "ytThumb", "ytBanner"],
     logo: ["logoTop", "logoTopX", "logoLeft", "logoLeftX", "typelogo", "logoTagline", "typeLines"]
   };
   var USES_SPACING = { isometric: 1, triangular: 1, hexagonal: 1, concentric: 1, circlesTri: 1, circlesSquare: 1 };
+  var USES_WEB = { bento: 1, autoFit: 1, holyGrail: 1, heroCards: 1, split: 1, dashboard: 1 };
+  var USES_ITEMS = { bento: 1 };
+  var USES_MIN = { autoFit: 1 };
   var USES_COUNT = { radial: 1, persp1: 1, persp2: 1, persp3: 1 };
   var USES_LOGO = { logoTop: 1, logoTopX: 1, logoLeft: 1, logoLeftX: 1, typelogo: 1, logoTagline: 1 };
 
@@ -878,6 +1025,12 @@
     VARIANTS: VARIANTS,
     USES_SPACING: USES_SPACING,
     USES_COUNT: USES_COUNT,
+    USES_WEB: USES_WEB,
+    USES_ITEMS: USES_ITEMS,
+    USES_MIN: USES_MIN,
+    widthClass: widthClass,
+    parseBento: parseBento,
+    packBento: packBento,
     USES_LOGO: USES_LOGO,
     defaults: defaults,
     normalize: normalize,

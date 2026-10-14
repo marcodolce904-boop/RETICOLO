@@ -32,9 +32,13 @@
       "f.dir.dots": "Punti",
       "sub.studio": "Studio", "sub.social": "Social",
       "layout.note": "Schemi di lettura e di interfaccia: controlli schematici della gerarchia, non regole. Servono soprattutto per pagine con molto testo.",
+      "web.note": "Layout web che si adattano alla larghezza dell'artboard: sotto 600 mobile (4 colonne), sotto 840 tablet (8), da 840 desktop (12). Con Tutti gli artboard ogni formato usa la sua versione.",
+      "f.items": "Blocchi del bento (larghezza x altezza)", "f.items.help": "Es. 6x4 = 6 colonne su 12 e 4 righe. 6x4/4/2 fissa anche la larghezza su tablet (4 su 8) e su mobile (2 su 4); senza, si scala in proporzione. I blocchi si dispongono in ordine nel primo spazio libero.",
+      "f.wgap": "Gutter", "f.wrow": "Altezza riga (0 = adatta)", "f.wmin": "Larghezza minima card", "f.wrows": "Righe",
+      "err.badItems": "Blocchi non validi: usa larghezza x altezza, per esempio 6x4 3x2 (da 1 a 12, massimo 60 blocchi).",
       "social.note": "Zone da tenere libere dall'interfaccia dell'app (celle). Valori indicativi in proporzione al formato: le piattaforme li cambiano spesso.",
       "readout.cols": "Colonne {w}", "readout.x": "X = {x} ({n} linee)",
-      "sub.logo": "Logo", "sub.layout": "Layout",
+      "sub.logo": "Logo", "sub.layout": "Layout", "sub.web": "Web",
       "f.logoX": "X (unità)", "f.logoClear": "Spazio libero", "f.logoSym": "Simbolo", "f.logoGap": "Distanza",
       "f.logoWW": "Logotipo largh.", "f.logoWH": "Logotipo alt.",
       "f.logoX.help": "X = 0 adatta il logo al riquadro. Per usare la x del tuo carattere (o l'altezza di un elemento), misurala e scrivila qui: tutte le distanze diventano multipli esatti di X.",
@@ -106,9 +110,13 @@
       "f.dir.dots": "Dots",
       "sub.studio": "Studio", "sub.social": "Social",
       "layout.note": "Reading and interface patterns: schematic checks of hierarchy, not rules. Mostly useful for text-heavy pages.",
+      "web.note": "Web layouts that adapt to the artboard width: below 600 mobile (4 columns), below 840 tablet (8), from 840 desktop (12). With All artboards each format gets its own version.",
+      "f.items": "Bento blocks (width x height)", "f.items.help": "E.g. 6x4 = 6 of 12 columns and 4 rows. 6x4/4/2 also sets the width on tablet (4 of 8) and mobile (2 of 4); without it, spans scale proportionally. Blocks are placed in order in the first free space.",
+      "f.wgap": "Gutter", "f.wrow": "Row height (0 = fit)", "f.wmin": "Card minimum width", "f.wrows": "Rows",
+      "err.badItems": "Invalid blocks: use width x height, for example 6x4 3x2 (1 to 12, up to 60 blocks).",
       "social.note": "Areas to keep clear of the app's interface (cells). Indicative values, scaled to the format: platforms change them often.",
       "readout.cols": "Columns {w}", "readout.x": "X = {x} ({n} lines)",
-      "sub.logo": "Logo", "sub.layout": "Layout",
+      "sub.logo": "Logo", "sub.layout": "Layout", "sub.web": "Web",
       "f.logoX": "X (unit)", "f.logoClear": "Clear space", "f.logoSym": "Symbol", "f.logoGap": "Gap",
       "f.logoWW": "Wordmark width", "f.logoWH": "Wordmark height",
       "f.logoX.help": "X = 0 fits the logo to the frame. To use the x of your typeface (or the height of an element), measure it and type it here: every distance becomes an exact multiple of X.",
@@ -164,6 +172,7 @@
       goldenCircles: "Cerchi aurei", keylines: "Keyline icone", persp1: "Prospettiva 1 pt", persp2: "Prospettiva 2 pt", persp3: "Prospettiva 3 pt",
       spread: "Doppia pagina", gutenberg: "Gutenberg", zPattern: "Lettura a Z", fPattern: "Lettura a F", listDetail: "Lista + dettaglio", supportingPane: "Pannello supporto", appShell: "App shell",
       vesica: "Vesica piscis", circlesTri: "Cerchi triangolare", circlesSquare: "Cerchi quadrato", androidIcon: "Icona Android",
+      bento: "Bento responsivo", autoFit: "Card auto-fit", holyGrail: "Holy grail", heroCards: "Hero + card", split: "Schermo diviso 7/5", dashboard: "Dashboard",
       igStory: "IG Story", igReel: "IG Reel", tiktok: "TikTok", igProfile: "IG profilo 3:4", ytThumb: "YT miniatura", ytBanner: "YT banner"
     },
     en: {
@@ -176,6 +185,7 @@
       goldenCircles: "Golden circles", keylines: "Icon keylines", persp1: "1-pt perspective", persp2: "2-pt perspective", persp3: "3-pt perspective",
       spread: "Spread", gutenberg: "Gutenberg", zPattern: "Z pattern", fPattern: "F pattern", listDetail: "List + detail", supportingPane: "Supporting pane", appShell: "App shell",
       vesica: "Vesica piscis", circlesTri: "Circles: triangular", circlesSquare: "Circles: square", androidIcon: "Android icon",
+      bento: "Responsive bento", autoFit: "Auto-fit cards", holyGrail: "Holy grail", heroCards: "Hero + cards", split: "Split screen 7/5", dashboard: "Dashboard",
       igStory: "IG Story", igReel: "IG Reel", tiktok: "TikTok", igProfile: "IG profile 3:4", ytThumb: "YT thumbnail", ytBanner: "YT banner"
     }
   };

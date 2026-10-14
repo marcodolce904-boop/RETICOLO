@@ -406,6 +406,9 @@
       var rule = el.dataset.show, ok;
       if (rule === "comp.spacing") ok = !!E.USES_SPACING[S.grid.comp.variant];
       else if (rule === "comp.logo") ok = !!E.USES_LOGO[S.grid.comp.variant];
+      else if (rule === "comp.web") ok = !!E.USES_WEB[S.grid.comp.variant];
+      else if (rule === "comp.items") ok = !!E.USES_ITEMS[S.grid.comp.variant];
+      else if (rule === "comp.min") ok = !!E.USES_MIN[S.grid.comp.variant];
       else if (rule === "comp.count") ok = !!E.USES_COUNT[S.grid.comp.variant];
       else { var kv = rule.split("="); ok = String(getPath(S.grid, kv[0])) === kv[1]; }
       el.hidden = !ok;

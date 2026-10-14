@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.0 (beta sperimentale)
+
+- Nuova famiglia **Web** in Comp, che si adatta alla larghezza dell'artboard (sotto 600 mobile, sotto 840 tablet, da 840 desktop).
+- **Bento responsivo**: scrivi le misure di ogni blocco (`6x4 3x2 ...`, colonne x righe) e i blocchi si dispongono da soli a 12, 8 e 4 colonne, con larghezze esatte opzionali per tablet e mobile (`4x2/4/2`). Gutter e altezza riga modificabili.
+- Altri layout web: card auto-fit con larghezza minima, holy grail, hero + card, schermo diviso 7/5, dashboard.
+- 6 nuovi preset (79 in totale), categoria Web.
+- `docs/layout-research.md`: nuova sezione con ricerca, regole del bento e limiti.
+
 ## 1.4.2 (beta sperimentale)
 
 - Corretto lo specchio delle pagine sinistre sulle curve: le maniglie delle Bezier non venivano specchiate, quindi la spirale aurea si deformava. Ora si specchia l'intero blocco (ancore e maniglie).

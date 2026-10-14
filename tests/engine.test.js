@@ -378,3 +378,77 @@ test("mirrorX: nelle Bezier si specchiano anche le maniglie (spirale aurea inter
   });
   m.forEach(function (p) { assert.ok(within(p, ab)); });
 });
+
+// ---- layout web responsive
+function webComp(variant, w, h, extra) {
+  var c = { family: "web", variant: variant, wgap: 0, margins: { t: 0, r: 0, b: 0, l: 0 } };
+  for (var k in extra || {}) c[k] = extra[k];
+  return E.build({ type: "comp", comp: c }, { w: w, h: h || 800 }, AI);
+}
+function rectsOf(out) { return out.prims.filter(function (p) { return p.t === "R"; }).map(function (p) { return p.a; }); }
+function overlaps(a, b) { return a[0] < b[0] + b[2] - 0.01 && b[0] < a[0] + a[2] - 0.01 && a[1] < b[1] + b[3] - 0.01 && b[1] < a[1] + a[3] - 0.01; }
+
+test("classi di larghezza: 600 e 840 come le window size classes", function () {
+  assert.equal(E.widthClass(599), "compact");
+  assert.equal(E.widthClass(600), "medium");
+  assert.equal(E.widthClass(839), "medium");
+  assert.equal(E.widthClass(840), "expanded");
+});
+
+test("bento: le colonne seguono la larghezza (12 / 8 / 4) e i blocchi non si sovrappongono né lasciano buchi", function () {
+  [[1440, 12], [700, 8], [390, 4]].forEach(function (c) {
+    var out = webComp("bento", c[0]);
+    assert.equal(out.error, undefined);
+    var r = rectsOf(out);
+    assert.equal(r.length, 9);
+    r.forEach(function (a, i) {
+      assert.ok(a[0] >= -0.01 && a[0] + a[2] <= c[0] + 0.01, "dentro in larghezza");
+      r.forEach(function (b, j) { if (i < j) assert.ok(!overlaps(a, b), "sovrapposti " + i + "," + j + " a " + c[0]); });
+    });
+    var area = r.reduce(function (s, a) { return s + a[2] * a[3]; }, 0);
+    assert.ok(near(area, c[0] * 800, 1), "nessun buco con il bento predefinito a " + c[1] + " colonne: " + area);
+  });
+});
+
+test("bento: misure dei blocchi in colonne e righe, con override per tablet e mobile", function () {
+  var out = webComp("bento", 1200, 1000, { items: "6x4 6x4", wrow: 100 });
+  var r = rectsOf(out);
+  assert.ok(near(r[0][2], 600) && near(r[0][3], 400) && near(r[1][0], 600));
+  var tab = rectsOf(webComp("bento", 700, 1000, { items: "6x2/8 6x2", wrow: 100 }));
+  assert.ok(near(tab[0][2], 700), "6x2/8: a tablet occupa tutte le 8 colonne");
+  var mob = rectsOf(webComp("bento", 390, 1000, { items: "6x2/4/1 6x2/4/3 6x2", wrow: 100 }));
+  assert.ok(near(mob[0][2], 390 / 4) && near(mob[1][2], 390 * 3 / 4) && near(mob[2][2], 390 / 2), "override mobile e scala 6 -> 2");
+});
+
+test("bento: altezza riga 0 riempie il riquadro, valore fisso lascia fuori ciò che non entra", function () {
+  var fit = rectsOf(webComp("bento", 1440, 800));
+  assert.ok(near(Math.max.apply(null, fit.map(function (a) { return a[1] + a[3]; })), 800));
+  var fixed = rectsOf(webComp("bento", 1440, 300, { wrow: 100 }));
+  assert.ok(fixed.length < 9 && fixed.every(function (a) { return a[1] + a[3] <= 300.01; }));
+});
+
+test("bento: gutter tra i blocchi e testo non valido", function () {
+  var r = rectsOf(webComp("bento", 1210, 800, { items: "6x4 6x4", wgap: 10 }));
+  assert.ok(near(r[1][0] - (r[0][0] + r[0][2]), 10));
+  assert.equal(webComp("bento", 1440, 800, { items: "6x4 pippo" }).error, "badItems");
+  assert.equal(webComp("bento", 1440, 800, { items: "13x1" }).error, "badItems");
+});
+
+test("card auto-fit: il numero di colonne dipende dalla larghezza e dalla minima", function () {
+  assert.equal(rectsOf(webComp("autoFit", 1440, 600, { wmin: 240, wrows: 1 })).length, 6);
+  assert.equal(rectsOf(webComp("autoFit", 600, 600, { wmin: 240, wrows: 1 })).length, 2);
+  assert.equal(rectsOf(webComp("autoFit", 200, 600, { wmin: 240, wrows: 2 })).length, 2);
+});
+
+test("layout web: ogni variante resta nell'artboard e non sovrappone i blocchi a nessuna classe", function () {
+  E.VARIANTS.web.forEach(function (v) {
+    [1440, 700, 390].forEach(function (w) {
+      var r = rectsOf(webComp(v, w, 900));
+      assert.ok(r.length >= 2, v + " " + w);
+      r.forEach(function (a, i) {
+        assert.ok(a[0] >= -0.01 && a[1] >= -0.01 && a[0] + a[2] <= w + 0.01 && a[1] + a[3] <= 900.01, v + " fuori a " + w);
+        r.forEach(function (b, j) { if (i < j) assert.ok(!overlaps(a, b), v + " sovrapposti a " + w + ": " + i + "," + j); });
+      });
+    });
+  });
+});
