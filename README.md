@@ -1,12 +1,23 @@
-# Reticolo
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/media/logo/reticolo-logo-dark.svg">
+    <img alt="Reticolo" src="docs/media/logo/reticolo-logo-light.svg" width="420">
+  </picture>
+</h1>
 
-![status](https://img.shields.io/badge/status-experimental%20beta-orange) ![version](https://img.shields.io/badge/version-2.0.0--beta-blue) ![apps](https://img.shields.io/badge/Illustrator%20%C2%B7%20Photoshop%20%C2%B7%20InDesign%20%C2%B7%20Figma-grey)
+<p align="center"><b>Layout grids for Adobe Illustrator, Photoshop, InDesign and Figma, in one panel.</b></p>
 
-**Layout grids for Adobe Illustrator, Photoshop, InDesign and Figma, in one panel.**
+<p align="center">
+  <img alt="status" src="https://img.shields.io/badge/status-experimental%20beta-orange">
+  <img alt="version" src="https://img.shields.io/badge/version-2.0.0--beta-blue">
+  <img alt="apps" src="https://img.shields.io/badge/Illustrator%20%C2%B7%20Photoshop%20%C2%B7%20InDesign%20%C2%B7%20Figma-grey">
+</p>
 
-Reticolo builds precise grids on your artboards and pages in a click: columns, modular grids, baselines and classic composition systems such as the golden spiral, dynamic symmetry and rabatment. It also covers practical tools like icon keylines, perspective guides and social media safe zones. Every grid can be saved to a personal library, tagged, and shared as a simple JSON file. The same library works in all three apps.
+Reticolo builds precise, repeatable grids on your artboards, pages and frames in one click. It starts from the everyday tools (columns, modular grids, baselines, dot grids, in px, mm or pt) and goes well beyond them: classic composition systems such as the golden spiral, dynamic symmetry, the Van de Graaf canon and rabatment; **responsive web layouts** like a bento with block sizes you choose, masonry, holy grail and dashboards that reflow for mobile, tablet and desktop; logo and icon construction in exact X units, keylines, circle lattices and the Android adaptive icon; print folds and two-page spreads that mirror on left-hand pages; and safe zones for Reels, Stories, TikTok and YouTube.
 
-It is built for graphic designers, editorial and print designers, UI and web designers, illustrators and content creators who set up grids every day and want them exact, repeatable and fast.
+All the geometry lives in a single engine shared by every host, so a grid is the same in Illustrator, Photoshop, InDesign and Figma. Grids can be drawn as strokes, filled cells or native guides (native layout grids in Figma), inside any closed object, and saved to a personal library: tagged, searchable, exported and imported as plain JSON.
+
+It is built for graphic, editorial and print designers, UI and web designers, illustrators and content creators who set up grids every day and want them exact, repeatable and fast.
 
 > **Experimental beta.** Reticolo is under active development and has been tested on a limited number of setups. Features, file formats and behaviour may change between versions, and some combinations of app version and document may not work as expected. Save your work before generating grids on important files, and please report any problem by opening an issue.
 
