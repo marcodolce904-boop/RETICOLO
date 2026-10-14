@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0 (beta sperimentale)
+
+- **Griglie dentro gli oggetti chiusi.** Nella tendina compaiono "Oggetto selezionato" e gli oggetti chiusi del livello attivo; la griglia viene costruita sul riquadro dell'oggetto e ritagliata sulla sua forma.
+  - Illustrator: tracciati chiusi e tracciati composti, gruppo con maschera di ritaglio.
+  - Photoshop: livelli del gruppo attivo, griglia agganciata con maschera di ritaglio.
+  - InDesign: rettangoli, ellissi, poligoni chiusi e cornici di testo; forme non rettangolari con Incolla dentro.
+- Generare o cancellare la griglia di un artboard non tocca le griglie dentro gli oggetti, e viceversa.
+- Il livello attivo dell'utente resta lo stesso dopo la generazione (Illustrator, InDesign).
+
 ## 1.1.0 (beta sperimentale)
 
 - Colonne asimmetriche con rapporti (`2 1 1`, Fibonacci `1 1 2 3 5`).

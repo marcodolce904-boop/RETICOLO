@@ -137,27 +137,38 @@
 
   function layerName() { return (S.set.layer || "Reticolo").trim() || "Reticolo"; }
 
-  function targetIndices() {
+  /**
+   * Dove disegnare: artboard/pagine ({ i }) oppure un oggetto chiuso ({ obj }).
+   * Valori della tendina: "all", "active", "i:<n>", "sel" (oggetto selezionato), "o:<id>".
+   */
+  function resolveTargets() {
     if (!S.doc) return [];
     var v = S.set.target, abs = S.doc.artboards;
-    if (v === "active") return [S.doc.active];
-    if (/^i:\d+$/.test(v)) {
-      var i = parseInt(v.slice(2), 10);
-      if (abs.some(function (a) { return a.i === i; })) return [i];
+    var asAb = function (a) { return { i: a.i, w: a.w, h: a.h }; };
+    var asObj = function (o) { return { obj: o.id, w: o.w, h: o.h }; };
+    if (v === "sel") return S.doc.selection ? [asObj(S.doc.selection)] : [];
+    if (/^o:/.test(v)) {
+      var o = (S.doc.objects || []).filter(function (x) { return "o:" + x.id === v; })[0];
+      return o ? [asObj(o)] : [];
     }
-    return abs.map(function (a) { return a.i; });
+    if (v === "active") return abs.filter(function (a) { return a.i === S.doc.active; }).map(asAb);
+    if (/^i:-?\d+$/.test(v)) {
+      var i = parseInt(v.slice(2), 10), hit = abs.filter(function (a) { return a.i === i; });
+      if (hit.length) return hit.map(asAb);
+    }
+    return abs.map(asAb);
   }
+
+  function isObjectTarget() { return S.set.target === "sel" || /^o:/.test(S.set.target); }
 
   function buildPayload() {
     var c = ctx(), mode = S.set.render, targets = [], err = null;
-    targetIndices().forEach(function (i) {
-      var ab = S.doc.artboards.filter(function (a) { return a.i === i; })[0];
-      if (!ab) return;
+    resolveTargets().forEach(function (ab) {
       var out = E.build(S.grid, { w: ab.w, h: ab.h }, c);
       if (out.error) { err = out.error; return; }
       var prims = out.prims, guides = null, native = null;
       var p = currentParams();
-      if (c.app === "IDSN" && mode === "guides" && S.set.idNative && S.grid.type === "columns" && !(p.maxWidth > 0)) {
+      if (c.app === "IDSN" && !ab.obj && mode === "guides" && S.set.idNative && S.grid.type === "columns" && !(p.maxWidth > 0)) {
         var f = E.unitFactor(S.grid.unit, c);
         native = {
           count: Math.round(p.count), gutter: p.gutter * f,
@@ -170,7 +181,9 @@
         prims = g.rest;
       }
       if (c.app === "PHXS") prims = E.flattenAll(prims, 12);
-      targets.push({ i: i, prims: prims, guides: guides, native: native });
+      var tg = { prims: prims, guides: guides, native: native };
+      if (ab.obj) tg.obj = ab.obj; else tg.i = ab.i;
+      targets.push(tg);
     });
     return {
       error: err,
@@ -183,12 +196,16 @@
     if (S.busy) { S.pending = S.pending === "explicit" || !silent ? "explicit" : "live"; return; }
     var b = buildPayload();
     if (b.error) { if (!silent) toast(t("err." + b.error), true); return; }
-    if (!b.payload.targets.length) return;
+    if (!b.payload.targets.length) {
+      if (!silent) toast(t(S.set.target === "sel" ? "err.noSelection" : "err.objectGone"), true);
+      return;
+    }
     S.busy = true;
     H.call("draw", b.payload).then(function (res) {
       S.busy = false;
-      if (res && res.error) toast(t("hostError", { msg: res.error }), true);
-      else if (!silent) toast(t("done", { n: b.payload.targets.length, what: S.doc.app === "IDSN" ? t("what.pages") : t("what.ab") }));
+      if (res && res.error === "objectGone") toast(t("err.objectGone"), true);
+      else if (res && res.error) toast(t("hostError", { msg: res.error }), true);
+      else if (!silent) toast(t("done", { n: b.payload.targets.length, what: isObjectTarget() ? t(b.payload.targets.length === 1 ? "what.obj1" : "what.obj") : S.doc.app === "IDSN" ? t("what.pages") : t("what.ab") }));
       S.layer.locked = !!S.set.lockAfter;
       S.layer.visible = true;
       renderLayerButtons();
@@ -215,7 +232,9 @@
 
   function clearGrid() {
     if (!S.doc) return;
-    H.call("clear", { layer: layerName(), targets: targetIndices() }).then(function (res) {
+    var targets = resolveTargets().map(function (tg) { return tg.obj ? { obj: tg.obj } : { i: tg.i }; });
+    if (!targets.length) { toast(t(S.set.target === "sel" ? "err.noSelection" : "err.objectGone"), true); return; }
+    H.call("clear", { layer: layerName(), targets: targets }).then(function (res) {
       if (res && res.error) toast(t("hostError", { msg: res.error }), true);
       else toast(t("cleared"));
     });
@@ -268,10 +287,30 @@
       opts.push(["active", app === "IDSN" ? t("target.activePage") : t("target.active")]);
       abs.forEach(function (a) { opts.push(["i:" + a.i, a.name]); });
     }
-    if (!opts.some(function (o) { return o[0] === S.set.target; })) S.set.target = "all";
-    sel.innerHTML = opts.map(function (o) {
+    // oggetti chiusi: la selezione corrente e quelli del livello attivo
+    var unit = app === "PHXS" ? "px" : "pt", objOpts = [];
+    // gli oggetti senza nome vengono numerati per tipo: "Tracciato 1", "Ellisse 2"...
+    var counters = {}, names = {};
+    (S.doc.objects || []).forEach(function (o) {
+      if (o.name) { names[o.id] = o.name; return; }
+      counters[o.kind] = (counters[o.kind] || 0) + 1;
+      names[o.id] = t("obj." + o.kind) + " " + counters[o.kind];
+    });
+    var label = function (o) {
+      var name = names[o.id] || o.name || t("obj." + o.kind);
+      return name + " (" + Math.round(o.w) + " x " + Math.round(o.h) + " " + unit + (o.page ? ", " + t("obj.page") + " " + o.page : "") + ")";
+    };
+    objOpts.push(["sel", t("target.selection") + (S.doc.selection ? ": " + label(S.doc.selection) : " (" + t("target.noSelection") + ")")]);
+    (S.doc.objects || []).forEach(function (o) { objOpts.push(["o:" + o.id, label(o)]); });
+    var all = opts.concat(objOpts);
+    if (!all.some(function (o) { return o[0] === S.set.target; })) S.set.target = "all";
+    var optHTML = function (o) {
       return '<option value="' + esc(o[0]) + '"' + (o[0] === S.set.target ? " selected" : "") + ">" + esc(o[1]) + "</option>";
-    }).join("");
+    };
+    var groupLabel = S.doc.layerName ? t("target.layerObjects", { name: S.doc.layerName }) : t("target.objects");
+    sel.innerHTML = '<optgroup label="' + esc(app === "IDSN" ? t("target.pagesGroup") : t("target.abGroup")) + '">' + opts.map(optHTML).join("") + "</optgroup>" +
+      '<optgroup label="' + esc(groupLabel) + '">' + objOpts.map(optHTML).join("") +
+      (objOpts.length === 1 ? '<option disabled>' + esc(t("target.noObjects")) + "</option>" : "") + "</optgroup>";
   }
 
   function renderPresets() {
@@ -308,9 +347,12 @@
   function readout() {
     var el = $("#readout");
     if (!S.doc) { el.textContent = ""; el.classList.remove("err"); return; }
-    var idx = targetIndices()[0];
-    var ab = S.doc.artboards.filter(function (a) { return a.i === idx; })[0];
-    if (!ab) { el.textContent = ""; return; }
+    var ab = resolveTargets()[0];
+    if (!ab) {
+      el.classList.toggle("err", isObjectTarget());
+      el.textContent = isObjectTarget() ? t(S.set.target === "sel" ? "err.noSelection" : "err.objectGone") : "";
+      return;
+    }
     var out = E.build(S.grid, { w: ab.w, h: ab.h }, ctx()), u = S.grid.unit;
     el.classList.toggle("err", !!out.error);
     if (out.error) { el.textContent = t("err." + out.error); return; }
@@ -811,6 +853,7 @@
     H.on("documentAfterActivate", function () { refreshDoc(); });
     H.on("documentAfterDeactivate", function () { setTimeout(refreshDoc, 150); });
     H.on("com.adobe.csxs.events.ThemeColorChanged", applyTheme);
+    window.addEventListener("rtc-mock-change", function () { refreshDoc(); });
     window.addEventListener("focus", function () {
       if (!H.isCEP) return;
       refreshDoc();

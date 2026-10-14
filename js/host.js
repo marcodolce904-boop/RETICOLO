@@ -114,56 +114,99 @@
 
   var Mock = (function () {
     var doc = {
-      app: "ILST", name: "Demo.ai", res: 72, active: 0,
-      artboards: [{ i: 0, name: "Desktop 1440", w: 1440, h: 900 }, { i: 1, name: "Story 1080", w: 1080, h: 1920 }, { i: 2, name: "A4", w: 595.28, h: 841.89 }]
+      app: "ILST", name: "Demo.ai", res: 72, active: 0, layerName: "Livello 1",
+      artboards: [{ i: 0, name: "Desktop 1440", w: 1440, h: 900 }, { i: 1, name: "Story 1080", w: 1080, h: 1920 }, { i: 2, name: "A4", w: 595.28, h: 841.89 }],
+      // oggetti chiusi simulati sul primo artboard
+      objects: [
+        { id: "rect-hero", name: "Hero", kind: "path", ab: 0, x: 96, y: 120, w: 640, h: 420, shape: "rect" },
+        { id: "circle-badge", name: "", kind: "path", ab: 0, x: 860, y: 150, w: 440, h: 440, shape: "ellipse" },
+        { id: "card-1", name: "", kind: "compound", ab: 0, x: 96, y: 600, w: 1208, h: 200, shape: "rect" }
+      ],
+      selected: "rect-hero"
     };
     var drawn = {}, layer = { visible: true, locked: false };
     function stage() { return document.getElementById("stage"); }
-    function svgFor(ab) {
-      var esc = function (n) { return Math.round(n * 100) / 100; };
-      var d = drawn[ab.i], parts = [];
-      if (d) {
-        var st = d.style, sw = st.sw;
-        d.prims.forEach(function (p) {
-          var bold = p.b ? st.bold : 1;
-          if (p.t === "R") {
-            var fillCells = d.mode === "fill" || d.mode === "both";
-            var strokeCells = d.mode === "stroke" || d.mode === "both";
-            parts.push('<rect x="' + esc(p.a[0]) + '" y="' + esc(p.a[1]) + '" width="' + esc(p.a[2]) + '" height="' + esc(p.a[3]) + '" fill="' + (fillCells ? st.fill : "none") + '" fill-opacity="' + st.fa / 100 + '" stroke="' + (strokeCells ? st.stroke : "none") + '" stroke-width="' + sw + '"/>');
-          } else if (p.t === "L") {
-            parts.push('<line x1="' + esc(p.a[0]) + '" y1="' + esc(p.a[1]) + '" x2="' + esc(p.a[2]) + '" y2="' + esc(p.a[3]) + '" stroke="' + st.stroke + '" stroke-width="' + sw * bold + '"/>');
-          } else if (p.t === "P") {
-            parts.push('<' + (p.c ? "polygon" : "polyline") + ' points="' + p.p.map(function (q) { return esc(q[0]) + "," + esc(q[1]); }).join(" ") + '" fill="none" stroke="' + st.stroke + '" stroke-width="' + sw + '"/>');
-          } else if (p.t === "B") {
-            var s = "M" + p.p[0][0] + " " + p.p[0][1], n = p.c ? p.p.length : p.p.length - 1;
-            for (var k = 0; k < n; k++) {
-              var A = p.p[k], B = p.p[(k + 1) % p.p.length];
-              s += " C" + A[4] + " " + A[5] + " " + B[2] + " " + B[3] + " " + B[0] + " " + B[1];
-            }
-            parts.push('<path d="' + s + (p.c ? "Z" : "") + '" fill="none" stroke="' + st.stroke + '" stroke-width="' + sw + '"/>');
+    function r2(n) { return Math.round(n * 100) / 100; }
+    function primsSVG(d, w, h) {
+      var parts = [], st = d.style, sw = st.sw;
+      d.prims.forEach(function (p) {
+        var bold = p.b ? st.bold : 1;
+        if (p.t === "R") {
+          var fillCells = d.mode === "fill" || d.mode === "both";
+          var strokeCells = d.mode === "stroke" || d.mode === "both";
+          parts.push('<rect x="' + r2(p.a[0]) + '" y="' + r2(p.a[1]) + '" width="' + r2(p.a[2]) + '" height="' + r2(p.a[3]) + '" fill="' + (fillCells ? st.fill : "none") + '" fill-opacity="' + st.fa / 100 + '" stroke="' + (strokeCells ? st.stroke : "none") + '" stroke-width="' + sw + '"/>');
+        } else if (p.t === "L") {
+          parts.push('<line x1="' + r2(p.a[0]) + '" y1="' + r2(p.a[1]) + '" x2="' + r2(p.a[2]) + '" y2="' + r2(p.a[3]) + '" stroke="' + st.stroke + '" stroke-width="' + sw * bold + '"/>');
+        } else if (p.t === "P") {
+          parts.push('<' + (p.c ? "polygon" : "polyline") + ' points="' + p.p.map(function (q) { return r2(q[0]) + "," + r2(q[1]); }).join(" ") + '" fill="none" stroke="' + st.stroke + '" stroke-width="' + sw + '"/>');
+        } else if (p.t === "B") {
+          var s = "M" + p.p[0][0] + " " + p.p[0][1], n = p.c ? p.p.length : p.p.length - 1;
+          for (var k = 0; k < n; k++) {
+            var A = p.p[k], B = p.p[(k + 1) % p.p.length];
+            s += " C" + A[4] + " " + A[5] + " " + B[2] + " " + B[3] + " " + B[0] + " " + B[1];
           }
-        });
-        (d.guides ? d.guides.v : []).forEach(function (x) { parts.push('<line class="guide" x1="' + x + '" y1="0" x2="' + x + '" y2="' + ab.h + '"/>'); });
-        (d.guides ? d.guides.h : []).forEach(function (y) { parts.push('<line class="guide" x1="0" y1="' + y + '" x2="' + ab.w + '" y2="' + y + '"/>'); });
-      }
+          parts.push('<path d="' + s + (p.c ? "Z" : "") + '" fill="none" stroke="' + st.stroke + '" stroke-width="' + sw + '"/>');
+        }
+      });
+      (d.guides ? d.guides.v : []).forEach(function (x) { parts.push('<line class="guide" x1="' + x + '" y1="0" x2="' + x + '" y2="' + h + '"/>'); });
+      (d.guides ? d.guides.h : []).forEach(function (y) { parts.push('<line class="guide" x1="0" y1="' + y + '" x2="' + w + '" y2="' + y + '"/>'); });
+      return parts.join("");
+    }
+    function shapeSVG(o, attrs) {
+      return o.shape === "ellipse"
+        ? '<ellipse cx="' + (o.x + o.w / 2) + '" cy="' + (o.y + o.h / 2) + '" rx="' + o.w / 2 + '" ry="' + o.h / 2 + '" ' + attrs + "/>"
+        : '<rect x="' + o.x + '" y="' + o.y + '" width="' + o.w + '" height="' + o.h + '" rx="' + (o.kind === "compound" ? 24 : 0) + '" ' + attrs + "/>";
+    }
+    function svgFor(ab) {
+      var body = "", defs = "";
+      doc.objects.filter(function (o) { return o.ab === ab.i; }).forEach(function (o) {
+        body += shapeSVG(o, 'data-obj="' + o.id + '" style="cursor:pointer" fill="#eef1f4" stroke="' + (o.id === doc.selected ? "#1b6ad6" : "#c5ccd3") + '" stroke-width="' + (o.id === doc.selected ? 2 : 1) + '"');
+      });
+      if (drawn["a:" + ab.i]) body += primsSVG(drawn["a:" + ab.i], ab.w, ab.h);
+      doc.objects.filter(function (o) { return o.ab === ab.i && drawn["o:" + o.id]; }).forEach(function (o) {
+        var d = drawn["o:" + o.id], clip = "clip-" + o.id;
+        defs += '<clipPath id="' + clip + '">' + shapeSVG(o, "") + "</clipPath>";
+        body += '<g clip-path="url(#' + clip + ')"><g transform="translate(' + o.x + " " + o.y + ')">' + primsSVG(d, o.w, o.h) + "</g></g>";
+      });
       return '<figure class="ab" style="--ar:' + ab.w / ab.h + '"><figcaption>' + ab.name + '</figcaption>' +
         '<svg viewBox="0 0 ' + ab.w + " " + ab.h + '" preserveAspectRatio="xMidYMid meet" style="opacity:' + (layer.visible ? 1 : 0.15) + '">' +
-        '<rect width="' + ab.w + '" height="' + ab.h + '" fill="#fff"/><g vector-effect="non-scaling-stroke">' + parts.join("") + "</g></svg></figure>";
+        "<defs>" + defs + '</defs><rect width="' + ab.w + '" height="' + ab.h + '" fill="#fff"/><g vector-effect="non-scaling-stroke">' + body + "</g></svg></figure>";
     }
     function render() {
       var el = stage();
       if (el) el.innerHTML = doc.artboards.map(svgFor).join("");
     }
-    setTimeout(render, 0);
+    function describe(o) { return { id: o.id, name: o.name, kind: o.kind, w: o.w, h: o.h }; }
+    function key(t) { return t.obj ? "o:" + t.obj : "a:" + t.i; }
+    setTimeout(function () {
+      render();
+      var el = stage();
+      // clic su un oggetto = selezionarlo nell'app
+      if (el) el.addEventListener("click", function (e) {
+        var hit = e.target.closest ? e.target.closest("[data-obj]") : null;
+        if (!hit) return;
+        doc.selected = hit.getAttribute("data-obj");
+        render();
+        window.dispatchEvent(new Event("rtc-mock-change"));
+      });
+    }, 0);
     return {
-      info: function () { return JSON.parse(JSON.stringify({ app: doc.app, doc: true, name: doc.name, res: doc.res, active: doc.active, artboards: doc.artboards })); },
+      info: function () {
+        var sel = doc.objects.filter(function (o) { return o.id === doc.selected; })[0];
+        return JSON.parse(JSON.stringify({
+          app: doc.app, doc: true, name: doc.name, res: doc.res, active: doc.active, artboards: doc.artboards,
+          layerName: doc.layerName, objects: doc.objects.map(describe), selection: sel ? describe(sel) : null
+        }));
+      },
+      // solo anteprima: simula il clic su un oggetto nell'app
+      select: function (id) { doc.selected = id; render(); },
       draw: function (p) {
-        p.targets.forEach(function (t) { drawn[t.i] = { prims: t.prims, guides: t.guides, style: p.style, mode: p.mode }; });
+        p.targets.forEach(function (t) { drawn[key(t)] = { prims: t.prims, guides: t.guides, style: p.style, mode: p.mode }; });
         layer.locked = !!p.lock;
         render();
         return { ok: true, count: p.targets.length };
       },
-      clear: function (p) { p.targets.forEach(function (i) { delete drawn[i]; }); render(); return { ok: true }; },
+      clear: function (p) { p.targets.forEach(function (t) { delete drawn[key(t)]; }); render(); return { ok: true }; },
       layerState: function () { return { exists: Object.keys(drawn).length > 0, visible: layer.visible, locked: layer.locked }; },
       setLayer: function (p) {
         if (p.visible !== undefined) layer.visible = p.visible;
@@ -173,6 +216,8 @@
       }
     };
   })();
+
+  root.RTC_MOCK = isCEP ? null : Mock;
 
   root.RTC_HOST = {
     isCEP: isCEP,

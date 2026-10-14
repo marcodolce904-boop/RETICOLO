@@ -122,7 +122,7 @@ test("Illustrator: info, draw in ogni modalita', clear, layer", function () {
   assert.ok(m.created.paths > 100);
   assert.ok(m.created.removed > 0, "ridisegnare rimuove la griglia precedente dell'artboard");
   assert.equal(m.globals.app.coordinateSystem, "ARTBOARD", "il sistema di coordinate viene ripristinato");
-  assert.equal(JSON.parse(R.clear(JSON.stringify({ layer: "Reticolo", targets: [0, 1] }))).error, undefined);
+  assert.equal(JSON.parse(R.clear(JSON.stringify({ layer: "Reticolo", targets: [{ i: 0 }, { i: 1 }] }))).error, undefined);
   assert.equal(JSON.parse(R.setLayer(JSON.stringify({ layer: "Reticolo", visible: false }))).visible, false);
   assert.equal(JSON.parse(R.layerState(JSON.stringify({ layer: "Reticolo" }))).exists, true);
 });
@@ -197,12 +197,12 @@ test("InDesign: info, draw in ogni modalita', colonne native, clear", function (
   assert.equal(m.created.native, 2);
   var pg = m.globals.app.activeDocument.pages[0];
   assert.equal(pg.margins.columnCount, 6);
-  assert.equal(JSON.parse(R.clear(JSON.stringify({ layer: "Reticolo", targets: [0] }))).error, undefined);
+  assert.equal(JSON.parse(R.clear(JSON.stringify({ layer: "Reticolo", targets: [{ i: 0 }] }))).error, undefined);
   assert.equal(pg.margins.columnCount, 1, "Cancella ripristina le colonne originali");
   assert.equal(pg.margins.top, 36);
   assert.equal(m.globals.app.scriptPreferences.measurementUnit, "mm", "unita' di scripting ripristinate");
   assert.ok(m.created.items > 100 && m.created.guides > 10);
-  assert.equal(JSON.parse(R.clear(JSON.stringify({ layer: "Reticolo", targets: [0, 1] }))).error, undefined);
+  assert.equal(JSON.parse(R.clear(JSON.stringify({ layer: "Reticolo", targets: [{ i: 0 }, { i: 1 }] }))).error, undefined);
 });
 
 // ------------------------------------------------------------------ Photoshop
@@ -295,9 +295,151 @@ function photoshopDOM(withArtboards) {
     assert.ok(m.created.guides > 0);
     assert.equal(m.created.resize % 2, 0, "la risoluzione deve essere sempre ripristinata");
     assert.equal(m.globals.app.preferences.rulerUnits, "cm", "le unita' del righello devono essere ripristinate");
-    assert.equal(JSON.parse(R.clear(JSON.stringify({ layer: "Reticolo", targets: info.artboards.map(function (a) { return a.i; }) }))).error, undefined);
+    assert.equal(JSON.parse(R.clear(JSON.stringify({ layer: "Reticolo", targets: info.artboards.map(function (a) { return { i: a.i }; }) }))).error, undefined);
     var left = m.globals.app.activeDocument.guides;
     assert.equal(left.length, 1, "restano solo le guide dell'utente");
     assert.equal(left[0].coordinate.as("px"), 333.3);
   });
+});
+
+// ------------------------------------------------------------------ griglie dentro oggetti chiusi
+
+function objectPayload(app, objects, mode) {
+  return {
+    layer: "Reticolo", mode: mode || "stroke", style: { stroke: "#00B8D9", fill: "#00B8D9", sw: 1, fa: 12, bold: 2 }, lock: false,
+    targets: objects.map(function (o) {
+      var out = E.build({ type: "modular", modular: { cols: 3, rows: 2 } }, { w: o.w, h: o.h }, { app: app, res: 72 });
+      var prims = app === "PHXS" ? E.flattenAll(out.prims, 12) : out.prims;
+      return { obj: o.id, prims: prims, guides: null, native: null };
+    })
+  };
+}
+
+test("Illustrator: oggetti chiusi del livello attivo, griglia ritagliata sulla forma", function () {
+  var m = illustratorDOM(), d = m.globals.app.activeDocument, masks = [];
+  function shape(uuid, type, b) {
+    return {
+      typename: type, closed: true, guides: false, clipping: false, name: "", uuid: uuid, geometricBounds: b,
+      pathPoints: { length: 4 }, pathItems: [{ clipping: false }],
+      duplicate: function () { var dup = { typename: type, clipping: false, pathItems: [{ clipping: false }] }; masks.push(dup); return dup; }
+    };
+  }
+  var rect = shape("U1", "PathItem", [100, -100, 500, -400]);
+  var compound = shape("U2", "CompoundPathItem", [600, -100, 800, -300]);
+  var open = shape("U3", "PathItem", [0, 0, 10, -10]); open.closed = false;
+  var userLayer = { name: "Disegni", pageItems: [rect, compound, open] };
+  d.activeLayer = userLayer;
+  d.selection = [open, rect];
+  d.getPageItemFromUuid = function (id) { return { U1: rect, U2: compound, U3: open }[id]; };
+  m.globals.ElementPlacement = { PLACEATBEGINNING: "begin" };
+  var R = run("illustrator.jsx", m.globals).Reticolo;
+
+  var info = JSON.parse(R.info());
+  assert.equal(info.layerName, "Disegni");
+  assert.deepEqual(info.objects.map(function (o) { return o.id; }), ["U1", "U2"], "solo i tracciati chiusi");
+  assert.equal(info.selection.id, "U1", "il primo oggetto chiuso della selezione");
+  assert.equal(info.objects[0].w, 400);
+  assert.equal(info.objects[0].h, 300);
+
+  var res = JSON.parse(R.draw(JSON.stringify(objectPayload("ILST", info.objects))));
+  assert.equal(res.error, undefined);
+  var grid = d.layers[0].pageItems.filter(function (g) { return g.name === "RTC:o:U1"; })[0];
+  assert.ok(grid, "gruppo della griglia nel livello Reticolo");
+  assert.equal(grid.clipped, true, "maschera di ritaglio attiva");
+  assert.equal(masks[0].clipping, true);
+  assert.equal(masks[1].pathItems[0].clipping, true, "tracciato composto come maschera");
+  assert.equal(d.activeLayer, userLayer, "il livello attivo dell'utente non cambia");
+
+  var missing = JSON.parse(R.draw(JSON.stringify(objectPayload("ILST", [{ id: "U3", w: 10, h: 10 }]))));
+  assert.equal(missing.error, "objectGone");
+  assert.equal(JSON.parse(R.clear(JSON.stringify({ layer: "Reticolo", targets: [{ obj: "U1" }] }))).error, undefined);
+  assert.equal(d.layers[0].pageItems.filter(function (g) { return g.name === "RTC:o:U1"; }).length, 0);
+  assert.equal(d.layers[0].pageItems.filter(function (g) { return g.name === "RTC:o:U2"; }).length, 1, "le altre griglie restano");
+});
+
+test("Photoshop: livelli del gruppo attivo, griglia agganciata con maschera di ritaglio", function () {
+  var m = photoshopDOM(false), d = m.globals.app.activeDocument, made = [];
+  function unit(v) { return { as: function () { return v; } }; }
+  var shapeLayer = { typename: "ArtLayer", id: 55, name: "Forma 1", isBackgroundLayer: false, bounds: [unit(100), unit(50), unit(500), unit(350)], parent: d };
+  var bg = { typename: "ArtLayer", id: 1, name: "Sfondo", isBackgroundLayer: true, bounds: [unit(0), unit(0), unit(1440), unit(900)], parent: d };
+  d.layers = [shapeLayer, bg];
+  d.activeLayer = shapeLayer;
+  m.globals.ElementPlacement.PLACEBEFORE = "before";
+  m.globals.executeAction = function () {
+    var l = { name: "", opacity: 100, grouped: false, move: function (t, where) { l.movedTo = [t, where]; } };
+    made.push(l);
+    d.activeLayer = l;
+  };
+  var ctx = run("photoshop.jsx", m.globals);
+  m.ctxRef.ctx = ctx;
+  var R = ctx.Reticolo;
+  d.activeLayer = shapeLayer;
+
+  var info = JSON.parse(R.info());
+  assert.deepEqual(info.objects.map(function (o) { return o.id; }), ["55"], "lo sfondo non e' un oggetto");
+  assert.equal(info.selection.id, "55");
+  assert.equal(info.objects[0].w, 400);
+
+  var p = objectPayload("PHXS", info.objects, "both");
+  var res = JSON.parse(R.draw(JSON.stringify(p)));
+  assert.equal(res.error, undefined);
+  assert.equal(made.length, 2, "celle + linee");
+  made.forEach(function (l) {
+    assert.equal(l.name, "Reticolo [55]");
+    assert.equal(l.grouped, true, "maschera di ritaglio sul livello sotto");
+    assert.equal(l.movedTo[1], "before");
+  });
+  assert.equal(made[0].movedTo[0], shapeLayer, "le celle stanno subito sopra l'oggetto");
+  assert.equal(made[1].movedTo[0], made[0], "le linee sopra le celle");
+});
+
+test("InDesign: oggetti del livello attivo, forme non rettangolari con Incolla dentro", function () {
+  var m = indesignDOM(), app = m.globals.app, d = app.activeDocument, calls = [];
+  var page = d.pages[0];
+  function item(kind, id, b, extra) {
+    var it = {
+      constructor: { name: kind }, id: id, label: "", name: "", parentPage: page, geometricBounds: b,
+      rotationAngle: 0, shearAngle: 0, paths: [{ pathType: "closed" }],
+      topLeftCornerOption: "none", topRightCornerOption: "none", bottomLeftCornerOption: "none", bottomRightCornerOption: "none",
+      duplicate: function () {
+        var f = { isValid: true, label: "", graphics: { everyItem: function () { return { remove: function () {} }; } }, remove: function () { f.isValid = false; } };
+        f.pageItems = f.graphics;
+        calls.push("duplicate");
+        return f;
+      }
+    };
+    for (var k in extra || {}) it[k] = extra[k];
+    return it;
+  }
+  var oval = item("Oval", 77, [100, 50, 300, 250]);
+  var rect = item("Rectangle", 78, [400, 50, 500, 300]);
+  var line = item("GraphicLine", 79, [0, 0, 10, 10]);
+  var userLayer = { name: "Grafica", id: 3, allPageItems: [oval, rect, line] };
+  app.activeWindow.activeLayer = userLayer;
+  app.selection = [rect];
+  d.allPageItems = [oval, rect, line];
+  page.groups = { add: function (items) { calls.push("group:" + items.length); return { isValid: true, label: "" }; } };
+  app.select = function () { calls.push("select"); };
+  app.cut = function () { calls.push("cut"); };
+  app.pasteInto = function () { calls.push("pasteInto"); };
+  m.globals.NothingEnum = { NOTHING: "nothing" };
+  m.globals.CornerOptions = { NONE: "none" };
+  m.globals.PathType.CLOSED_PATH = "closed";
+  var R = run("indesign.jsx", m.globals).Reticolo;
+
+  var info = JSON.parse(R.info());
+  assert.equal(info.layerName, "Grafica");
+  assert.deepEqual(info.objects.map(function (o) { return o.kind; }), ["oval", "rectangle"], "le linee non sono oggetti chiusi");
+  assert.equal(info.selection.id, "78");
+  assert.equal(info.objects[0].w, 200);
+
+  var res = JSON.parse(R.draw(JSON.stringify(objectPayload("IDSN", [info.objects[0]]))));
+  assert.equal(res.error, undefined);
+  assert.ok(calls.indexOf("pasteInto") > 0, "l'ellisse riceve la griglia con Incolla dentro");
+  calls.length = 0;
+  res = JSON.parse(R.draw(JSON.stringify(objectPayload("IDSN", [info.objects[1]]))));
+  assert.equal(res.error, undefined);
+  assert.equal(calls.indexOf("pasteInto"), -1, "il rettangolo dritto non serve ritagliarlo");
+  assert.equal(app.activeWindow.activeLayer, userLayer, "il livello attivo dell'utente non cambia");
+  assert.equal(JSON.parse(R.clear(JSON.stringify({ layer: "Reticolo", targets: [{ obj: "77" }] }))).error, undefined);
 });

@@ -4,6 +4,8 @@
  * Le linee diventano quadrilateri sottili raccolti in un unico tracciato, poi un livello di riempimento
  * con maschera vettoriale (nitido a qualsiasi zoom). Se non riesce, ripiega su un livello raster.
  * Tutto in un solo passo di cronologia (suspendHistory).
+ * Griglie dentro un oggetto: gli "oggetti" sono i livelli del gruppo attivo; la griglia diventa una coppia
+ * di livelli "<nome> [<id>]" sopra l'oggetto, agganciati con maschera di ritaglio alla sua forma.
  */
 (function () {
   function cTID(s) { return charIDToTypeID(s); }
@@ -79,6 +81,68 @@
     for (var i = sets.length - 1; i >= 0; i--) { sets[i].allLocked = false; sets[i].remove(); }
   }
 
+  // ---------------------------------------------------------------- oggetti (livelli del gruppo attivo)
+
+  var GRID_SUFFIX = /\s\[\d+\]$/;
+
+  function walk(container, fn) {
+    for (var i = 0; i < container.layers.length; i++) {
+      var l = container.layers[i];
+      fn(l);
+      if (l.typename === "LayerSet") walk(l, fn);
+    }
+  }
+
+  function layerById(d, id) {
+    var found = null;
+    walk(d, function (l) { if (!found) { try { if (l.id === id) found = l; } catch (e) { /* livello speciale */ } } });
+    return found;
+  }
+
+  function boundsOf(l) {
+    var b = l.bounds;
+    return { x: b[0].as("px"), y: b[1].as("px"), w: b[2].as("px") - b[0].as("px"), h: b[3].as("px") - b[1].as("px") };
+  }
+
+  function describeLayer(l) {
+    var b = boundsOf(l);
+    return { id: String(l.id), name: l.name, kind: "layer", w: b.w, h: b.h };
+  }
+
+  function usable(l) {
+    try {
+      return l.typename === "ArtLayer" && !l.isBackgroundLayer && !GRID_SUFFIX.test(l.name) && boundsOf(l).w > 0.5 && boundsOf(l).h > 0.5;
+    } catch (e) { return false; }
+  }
+
+  /** Livelli con cui si puo' lavorare: i figli del gruppo attivo (o i fratelli del livello attivo). */
+  function objectContext(d) {
+    var a = d.activeLayer, container = a.typename === "LayerSet" ? a : a.parent;
+    var list = [];
+    for (var i = 0; i < container.layers.length && list.length < 300; i++) {
+      if (usable(container.layers[i])) list.push(describeLayer(container.layers[i]));
+    }
+    return {
+      name: container.typename === "Document" ? d.name : container.name,
+      objects: list,
+      selection: usable(a) ? describeLayer(a) : null
+    };
+  }
+
+  function gridName(base, id) { return base + " [" + id + "]"; }
+
+  function removeObjectGrid(d, base, id) {
+    var name = gridName(base, id), hits = [];
+    walk(d, function (l) { if (l.name === name) hits.push(l); });
+    for (var i = hits.length - 1; i >= 0; i--) { try { hits[i].allLocked = false; hits[i].remove(); } catch (e) { /* gia' rimosso */ } }
+  }
+
+  function objectGridLayers(d, base) {
+    var out = [], prefix = base + " [";
+    walk(d, function (l) { if (l.name.substr(0, prefix.length) === prefix && GRID_SUFFIX.test(l.name)) out.push(l); });
+    return out;
+  }
+
   // ---------------------------------------------------------------- guide (registrate nei metadati XMP)
   // Le guide di Photoshop non hanno livello ne' nome: Reticolo annota le posizioni che crea nei metadati
   // del documento e rimuove solo quelle, lasciando intatte le guide messe a mano.
@@ -109,7 +173,7 @@
     } catch (e) { /* metadati non scrivibili: le guide restano non tracciate */ }
   }
 
-  function abKey(ab) { return ab.id === null ? "canvas" : "ab" + ab.id; }
+  function abKey(ab) { return ab.obj ? "obj" + ab.obj : ab.id === null ? "canvas" : "ab" + ab.id; }
 
   function near(list, v) {
     for (var i = 0; i < list.length; i++) if (Math.abs(list[i] - v) < 0.26) return true;
@@ -200,9 +264,13 @@
     var d = doc();
     if (!d) return Reticolo.ok({ app: "PHXS", doc: false });
     return withPixels(function () {
-      var abs = artboards(d), list = [];
+      var abs = artboards(d), list = [], ctx = { name: "", objects: [], selection: null };
       for (var i = 0; i < abs.length; i++) list.push({ i: abs[i].i, name: abs[i].name, w: abs[i].w, h: abs[i].h });
-      return Reticolo.ok({ app: "PHXS", doc: true, name: d.name, res: d.resolution, active: activeIndex(d, abs), artboards: list });
+      try { ctx = objectContext(d); } catch (e) { /* nessun livello attivo */ }
+      return Reticolo.ok({
+        app: "PHXS", doc: true, name: d.name, res: d.resolution, active: activeIndex(d, abs), artboards: list,
+        layerName: ctx.name, objects: ctx.objects, selection: ctx.selection
+      });
     });
   };
 
@@ -214,11 +282,22 @@
     // le coordinate dei tracciati sono in punti: a 72 ppi coincidono con i pixel
     if (Math.abs(res - 72) > 0.001) { d.resizeImage(null, null, 72, ResampleMethod.NONE); changedRes = true; }
     try {
-      var abs = artboards(d), gm = guideMap(d);
+      var abs = artboards(d), gm = guideMap(d), target, ab;
+      Reticolo._psMissing = 0;
       for (var ti = 0; ti < p.targets.length; ti++) {
-        var t = p.targets[ti], ab = byIndex(abs, t.i);
-        if (!ab) continue;
-        removeGrid(d, ab, p.layer);
+        var t = p.targets[ti];
+        target = null;
+        if (t.obj) {
+          target = layerById(d, Number(t.obj));
+          if (!target) { Reticolo._psMissing++; continue; }
+          var bo = boundsOf(target);
+          ab = { x: bo.x, y: bo.y, w: bo.w, h: bo.h, id: null, set: null, obj: t.obj };
+          removeObjectGrid(d, p.layer, t.obj);
+        } else {
+          ab = byIndex(abs, t.i);
+          if (!ab) continue;
+          removeGrid(d, ab, p.layer);
+        }
         removeOurGuides(d, ab, gm);
 
         var strokes = [], cells = [], k, j, segs, q;
@@ -243,6 +322,27 @@
           if (gm) gm.data[abKey(ab)] = { v: rv, h: rh };
         }
         if (!strokes.length && !cells.length) continue;
+
+        if (target) {
+          // sopra l'oggetto, agganciati con maschera di ritaglio: la griglia segue la sua forma
+          var below = target, made;
+          if (cells.length) {
+            made = shapeLayer(d, cells, fillRGB);
+            made.name = gridName(p.layer, t.obj);
+            made.opacity = st.fa;
+            made.move(below, ElementPlacement.PLACEBEFORE);
+            try { made.grouped = true; } catch (eg) { /* livello non agganciabile */ }
+            below = made;
+          }
+          if (strokes.length) {
+            made = shapeLayer(d, strokes, strokeRGB);
+            made.name = gridName(p.layer, t.obj);
+            made.move(below, ElementPlacement.PLACEBEFORE);
+            try { made.grouped = true; } catch (eg2) { /* livello non agganciabile */ }
+          }
+          if (p.lock) { try { made.allLocked = true; } catch (el) { /* ignora */ } }
+          continue;
+        }
 
         var grp = d.layerSets.add();
         grp.name = p.layer;
@@ -273,14 +373,21 @@
       if (!d) return Reticolo.err("No document");
       Reticolo._ps = Reticolo.parse(json);
       withPixels(function () { d.suspendHistory("Reticolo", "Reticolo._psDraw()"); });
-      return Reticolo.ok({ ok: true, count: Reticolo._ps.targets.length });
+      var miss = Reticolo._psMissing || 0;
+      return Reticolo.ok(miss ? { ok: true, count: Reticolo._ps.targets.length - miss, error: "objectGone" } : { ok: true, count: Reticolo._ps.targets.length });
     } catch (e) { return Reticolo.err(e); }
   };
 
   Reticolo._psClear = function () {
     var d = app.activeDocument, p = Reticolo._ps, abs = artboards(d), gm = guideMap(d);
     for (var i = 0; i < p.targets.length; i++) {
-      var ab = byIndex(abs, p.targets[i]);
+      var tg = p.targets[i], ab;
+      if (tg.obj) {
+        removeObjectGrid(d, p.layer, tg.obj);
+        removeOurGuides(d, { obj: tg.obj }, gm);
+        continue;
+      }
+      ab = byIndex(abs, tg.i);
       if (!ab) continue;
       removeGrid(d, ab, p.layer);
       removeOurGuides(d, ab, gm);
@@ -302,7 +409,7 @@
     try {
       var p = Reticolo.parse(json), d = doc();
       if (!d) return Reticolo.ok({ exists: false, visible: true, locked: false });
-      var sets = withPixels(function () { return allGridSets(d, p.layer); });
+      var sets = withPixels(function () { return allGridSets(d, p.layer).concat(objectGridLayers(d, p.layer)); });
       if (!sets.length) return Reticolo.ok({ exists: false, visible: true, locked: false });
       return Reticolo.ok({ exists: true, visible: sets[0].visible, locked: sets[0].allLocked });
     } catch (e) { return Reticolo.err(e); }
@@ -312,9 +419,9 @@
     try {
       var p = Reticolo.parse(json), d = doc();
       if (!d) return Reticolo.ok({ visible: true, locked: false });
-      var sets = withPixels(function () { return allGridSets(d, p.layer); });
+      var sets = withPixels(function () { return allGridSets(d, p.layer).concat(objectGridLayers(d, p.layer)); });
       for (var i = 0; i < sets.length; i++) {
-        if (p.rename) sets[i].name = p.rename;
+        if (p.rename) sets[i].name = sets[i].typename === "LayerSet" ? p.rename : sets[i].name.replace(p.layer + " [", p.rename + " [");
         if (p.visible !== undefined) sets[i].visible = p.visible;
         if (p.locked !== undefined) sets[i].allLocked = p.locked;
       }

@@ -5,6 +5,8 @@
  * (nessuna modifica al documento); solo durante il disegno l'origine va allo spread e poi torna com'era.
  * Margini e colonne native sovrascritti vengono salvati in un'etichetta della pagina e ripristinati da Cancella.
  * Gli oggetti creati hanno label "RTC" e stanno nel livello della griglia.
+ * Griglie dentro un oggetto (rettangoli, ellissi, poligoni chiusi, cornici di testo del livello attivo):
+ * etichetta "RTC:o:<id>"; per le forme non rettangolari la griglia viene incollata dentro una copia della forma.
  */
 (function () {
   var LABEL = "RTC";
@@ -83,6 +85,82 @@
     }
   }
 
+  // ---------------------------------------------------------------- oggetti chiusi
+
+  var KINDS = { Rectangle: "rectangle", Oval: "oval", Polygon: "polygon", TextFrame: "textframe" };
+
+  function isClosed(it) {
+    try {
+      var kind = KINDS[it.constructor.name];
+      if (!kind) return false;
+      if (String(it.label).substr(0, 3) === "RTC") return false;
+      if (!it.parentPage || !it.parentPage.isValid) return false;
+      if (kind === "polygon" && it.paths[0].pathType !== PathType.CLOSED_PATH) return false;
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function describe(it) {
+    var b = it.geometricBounds;
+    return { id: String(it.id), name: String(it.name || ""), kind: KINDS[it.constructor.name], w: b[3] - b[1], h: b[2] - b[0], page: it.parentPage.name };
+  }
+
+  function activeLayer(d) {
+    try { return app.activeWindow.activeLayer; } catch (e) { return d.activeLayer; }
+  }
+
+  function findObject(d, id) {
+    var items = d.allPageItems;
+    for (var i = 0; i < items.length; i++) if (String(items[i].id) === String(id)) return isClosed(items[i]) ? items[i] : null;
+    return null;
+  }
+
+  /** Rettangolo dritto senza angoli speciali: la griglia sul riquadro coincide gia' con la forma. */
+  function isPlainRect(it) {
+    try {
+      if (it.rotationAngle !== 0 || it.shearAngle !== 0) return false;
+      if (it.constructor.name === "TextFrame") return true;
+      if (it.constructor.name !== "Rectangle") return false;
+      return it.topLeftCornerOption === CornerOptions.NONE && it.topRightCornerOption === CornerOptions.NONE &&
+        it.bottomLeftCornerOption === CornerOptions.NONE && it.bottomRightCornerOption === CornerOptions.NONE;
+    } catch (e) { return false; }
+  }
+
+  function clearObject(page, label) {
+    var items = page.pageItems.everyItem().getElements(), i;
+    for (i = items.length - 1; i >= 0; i--) {
+      try { if (items[i].label === label) items[i].remove(); } catch (e) { /* oggetto non valido */ }
+    }
+    var guides = page.guides.everyItem().getElements();
+    for (i = guides.length - 1; i >= 0; i--) {
+      try { if (guides[i].label === label) guides[i].remove(); } catch (e2) { /* guida non valida */ }
+    }
+  }
+
+  /** Mette gli elementi della griglia dentro una copia vuota della forma (Incolla dentro). */
+  function clipInto(page, layer, shape, items, label) {
+    if (!items.length) return;
+    var content = items.length > 1 ? page.groups.add(items) : items[0], frame = null;
+    try {
+      frame = shape.duplicate();
+      frame.itemLayer = layer;
+      try { frame.graphics.everyItem().remove(); } catch (eg) { /* nessuna immagine */ }
+      try { frame.pageItems.everyItem().remove(); } catch (ep) { /* nessun contenuto */ }
+      frame.fillColor = "None";
+      frame.strokeWeight = 0;
+      app.select(content);
+      app.cut();
+      app.select(frame);
+      app.pasteInto();
+      frame.label = label;
+      app.select(NothingEnum.NOTHING);
+    } catch (e) {
+      // incolla dentro non riuscito: la griglia resta sul riquadro dell'oggetto
+      try { if (frame && frame.isValid) frame.remove(); } catch (e2) { /* gia' rimosso */ }
+      try { if (content.isValid) content.label = label; } catch (e3) { /* contenuto tagliato */ }
+    }
+  }
+
   function pageOrigin(page) {
     var b = page.bounds; // [y1, x1, y2, x2]
     return { x: b[1], y: b[0], w: b[3] - b[1], h: b[2] - b[0] };
@@ -98,14 +176,29 @@
         list.push({ i: pages[i].documentOffset, name: "Pag. " + pages[i].name, w: o.w, h: o.h });
       }
       try { active = app.activeWindow.activePage.documentOffset; } catch (e) { /* nessuna finestra layout */ }
-      return Reticolo.ok({ app: "IDSN", doc: true, name: d.name, res: 72, active: active, artboards: list });
+      var objects = [], selection = null, layerName = "";
+      try {
+        var al = activeLayer(d), items = al.allPageItems;
+        layerName = al.name;
+        for (var k = 0; k < items.length && objects.length < 300; k++) if (isClosed(items[k])) objects.push(describe(items[k]));
+      } catch (e2) { /* nessun livello attivo */ }
+      try {
+        for (var s2 = 0; s2 < app.selection.length; s2++) if (isClosed(app.selection[s2])) { selection = describe(app.selection[s2]); break; }
+      } catch (e3) { /* selezione di testo */ }
+      return Reticolo.ok({
+        app: "IDSN", doc: true, name: d.name, res: 72, active: active, artboards: list,
+        layerName: layerName, objects: objects, selection: selection
+      });
     });
   };
 
   Reticolo._idDraw = function () {
     var d = app.activeDocument, p = Reticolo._id, st = p.style, mode = p.mode;
     withPoints(d, function () {
-      var layer = getLayer(d, p.layer);
+      var prevLayer = null;
+      try { prevLayer = activeLayer(d); } catch (e0) { /* nessuna finestra */ }
+      var layer = getLayer(d, p.layer), label = LABEL, made = [];
+      Reticolo._idMissing = 0;
       var strokeC = swatch(d, "Reticolo linee", st.stroke), fillC = swatch(d, "Reticolo celle", st.fill);
       var fillCells = mode === "fill" || mode === "both", strokeCells = mode === "stroke" || mode === "both";
 
@@ -113,17 +206,32 @@
         it.strokeColor = strokeC;
         it.strokeWeight = st.sw * (bold ? st.bold : 1);
         it.fillColor = "None";
-        it.label = LABEL;
+        it.label = label;
         if (mode === "guides") it.nonprinting = true;
+        made.push(it);
       }
 
       for (var ti = 0; ti < p.targets.length; ti++) {
-        var t = p.targets[ti], page = d.pages[t.i];
-        if (!page.isValid) continue;
-        clearPage(page, layer);
-        var o = pageOrigin(page), k, j, pr, it, pts;
+        var t = p.targets[ti], page, o, shape = null;
+        made = [];
+        if (t.obj) {
+          shape = findObject(d, t.obj);
+          if (!shape) { Reticolo._idMissing++; continue; }
+          page = shape.parentPage;
+          label = "RTC:o:" + t.obj;
+          clearObject(page, label);
+          var sb = shape.geometricBounds;
+          o = { x: sb[1], y: sb[0], w: sb[3] - sb[1], h: sb[2] - sb[0] };
+        } else {
+          page = d.pages[t.i];
+          if (!page.isValid) continue;
+          label = LABEL;
+          clearPage(page, layer);
+          o = pageOrigin(page);
+        }
+        var k, j, pr, it, pts;
 
-        if (t.native) {
+        if (shape) { /* margini e colonne native valgono solo per la pagina */ } else if (t.native) {
           var n = t.native;
           backupMargins(page);
           page.marginPreferences.properties = { top: n.t, bottom: n.b, left: n.l, right: n.r, columnCount: n.count, columnGutter: n.gutter };
@@ -139,7 +247,8 @@
               it.strokeWeight = 0;
               it.strokeColor = "None";
               it.transparencySettings.blendingSettings.opacity = st.fa;
-              it.label = LABEL;
+              it.label = label;
+              made.push(it);
             }
             if (strokeCells) {
               it = page.rectangles.add(layer, undefined, undefined, { geometricBounds: gb });
@@ -167,14 +276,16 @@
           var gd;
           for (j = 0; j < t.guides.v.length; j++) {
             gd = page.guides.add(layer, { orientation: HorizontalOrVertical.VERTICAL, location: o.x + t.guides.v[j], fitToPage: true });
-            gd.label = LABEL;
+            gd.label = label;
           }
           for (j = 0; j < t.guides.h.length; j++) {
             gd = page.guides.add(layer, { orientation: HorizontalOrVertical.HORIZONTAL, location: o.y + t.guides.h[j], fitToPage: true });
-            gd.label = LABEL;
+            gd.label = label;
           }
         }
+        if (shape && made.length && !isPlainRect(shape)) clipInto(page, layer, shape, made, label);
       }
+      try { if (prevLayer && prevLayer.id !== layer.id) app.activeWindow.activeLayer = prevLayer; } catch (e1) { /* nessuna finestra */ }
       layer.locked = !!p.lock;
     });
   };
@@ -184,7 +295,8 @@
       if (!doc()) return Reticolo.err("No document");
       Reticolo._id = Reticolo.parse(json);
       app.doScript(Reticolo._idDraw, ScriptLanguage.JAVASCRIPT, undefined, UndoModes.ENTIRE_SCRIPT, "Reticolo");
-      return Reticolo.ok({ ok: true, count: Reticolo._id.targets.length });
+      var miss = Reticolo._idMissing || 0;
+      return Reticolo.ok(miss ? { ok: true, count: Reticolo._id.targets.length - miss, error: "objectGone" } : { ok: true, count: Reticolo._id.targets.length });
     } catch (e) { return Reticolo.err(e); }
   };
 
@@ -194,7 +306,13 @@
     var wasLocked = layer.locked;
     layer.locked = false;
     for (var i = 0; i < p.targets.length; i++) {
-      var page = d.pages[p.targets[i]];
+      var tg = p.targets[i];
+      if (tg.obj) {
+        var shape = findObject(d, tg.obj);
+        if (shape) clearObject(shape.parentPage, "RTC:o:" + tg.obj);
+        continue;
+      }
+      var page = d.pages[tg.i];
       if (page.isValid) { clearPage(page, layer); restoreMargins(page); }
     }
     layer.locked = wasLocked;

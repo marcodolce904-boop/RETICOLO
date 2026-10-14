@@ -3,6 +3,7 @@
  * Coordinate dal pannello: locali all'artboard, origine in alto a sinistra, y verso il basso, in punti.
  * Ogni artboard ha un gruppo "RTC:<indice>" nel livello della griglia; le guide sono tracciati
  * con .guides = true e nome "RTC:...". Cancella rimuove solo gli oggetti "RTC" che cadono nell'artboard.
+ * Griglie dentro un oggetto chiuso: gruppo "RTC:o:<uuid>" con maschera di ritaglio sulla forma dell'oggetto.
  */
 (function () {
   function doc() { return app.documents.length ? app.activeDocument : null; }
@@ -54,10 +55,55 @@
     for (var k = layer.pageItems.length - 1; k >= 0; k--) {
       try {
         var it = layer.pageItems[k];
-        if (String(it.name).substr(0, 3) !== "RTC") continue;
+        var nm = String(it.name);
+        if (nm.substr(0, 3) !== "RTC" || nm.substr(0, 6) === "RTC:o:") continue;
         var b = it.geometricBounds, cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2;
         if (cx >= r[0] - eps && cx <= r[2] + eps && cy <= r[1] + eps && cy >= r[3] - eps) it.remove();
       } catch (e) { /* gia' rimosso col gruppo */ }
+    }
+  }
+
+  // ---------------------------------------------------------------- oggetti chiusi
+
+  function isClosed(it) {
+    try {
+      if (String(it.name).substr(0, 3) === "RTC") return false;
+      if (it.typename === "CompoundPathItem") return it.pathItems.length > 0;
+      if (it.typename === "PathItem") return it.closed && !it.guides && !it.clipping && it.pathPoints.length > 2;
+    } catch (e) { /* oggetto non leggibile */ }
+    return false;
+  }
+
+  function objId(it) {
+    try { if (it.uuid) return String(it.uuid); } catch (e) { /* Illustrator senza uuid */ }
+    return null;
+  }
+
+  function describe(it) {
+    var b = it.geometricBounds;
+    return {
+      id: objId(it), name: String(it.name || ""), kind: it.typename === "CompoundPathItem" ? "compound" : "path",
+      w: b[2] - b[0], h: b[1] - b[3]
+    };
+  }
+
+  /** Oggetti chiusi del livello attivo, anche dentro gruppi (non nelle maschere di ritaglio). */
+  function collect(container, out) {
+    for (var i = 0; i < container.pageItems.length && out.length < 300; i++) {
+      var it = container.pageItems[i];
+      if (it.typename === "GroupItem" && !it.clipped && String(it.name).substr(0, 3) !== "RTC") collect(it, out);
+      else if (isClosed(it) && objId(it)) out.push(describe(it));
+    }
+  }
+
+  function findObject(d, id) {
+    try { var it = d.getPageItemFromUuid(id); if (it && isClosed(it)) return it; } catch (e) { /* non trovato */ }
+    return null;
+  }
+
+  function removeNamed(layer, name) {
+    for (var k = layer.pageItems.length - 1; k >= 0; k--) {
+      try { if (layer.pageItems[k].name === name) layer.pageItems[k].remove(); } catch (e) { /* gia' rimosso */ }
     }
   }
 
@@ -70,7 +116,19 @@
         var r = d.artboards[i].artboardRect;
         abs.push({ i: i, name: d.artboards[i].name, w: r[2] - r[0], h: r[1] - r[3] });
       }
-      return Reticolo.ok({ app: "ILST", doc: true, name: d.name, res: 72, active: d.artboards.getActiveArtboardIndex(), artboards: abs });
+      var objects = [], selection = null, layerName = "";
+      try {
+        layerName = d.activeLayer.name;
+        collect(d.activeLayer, objects);
+      } catch (e) { /* nessun livello attivo */ }
+      try {
+        var sel = d.selection;
+        for (var s = 0; s < sel.length; s++) if (isClosed(sel[s]) && objId(sel[s])) { selection = describe(sel[s]); break; }
+      } catch (e2) { /* selezione non leggibile (es. testo) */ }
+      return Reticolo.ok({
+        app: "ILST", doc: true, name: d.name, res: 72, active: d.artboards.getActiveArtboardIndex(), artboards: abs,
+        layerName: layerName, objects: objects, selection: selection
+      });
     });
   };
 
@@ -83,6 +141,8 @@
   };
 
   function drawIn(d, p) {
+    var prevActive = null;
+    try { prevActive = d.activeLayer; } catch (e0) { /* nessun livello attivo */ }
     var layer = getLayer(d, p.layer), st = p.style, mode = p.mode;
     var strokeC = color(d, st.stroke), fillC = color(d, st.fill);
     var fillCells = mode === "fill" || mode === "both", strokeCells = mode === "stroke" || mode === "both";
@@ -96,13 +156,24 @@
       if (asGuides) item.guides = true;
     };
 
+    var missing = 0;
     for (var ti = 0; ti < p.targets.length; ti++) {
-      var t = p.targets[ti];
-      removeTagged(d, layer, t.i);
-      var rect = d.artboards[t.i].artboardRect, ox = rect[0], oy = rect[1];
-      var abW = rect[2] - rect[0], abH = rect[1] - rect[3];
+      var t = p.targets[ti], obj = null, ox, oy, abW, abH, name;
+      if (t.obj) {
+        obj = findObject(d, t.obj);
+        if (!obj) { missing++; continue; }
+        name = "RTC:o:" + t.obj;
+        removeNamed(layer, name);
+        var gb = obj.geometricBounds;
+        ox = gb[0]; oy = gb[1]; abW = gb[2] - gb[0]; abH = gb[1] - gb[3];
+      } else {
+        removeTagged(d, layer, t.i);
+        var rect = d.artboards[t.i].artboardRect;
+        ox = rect[0]; oy = rect[1]; abW = rect[2] - rect[0]; abH = rect[1] - rect[3];
+        name = tag(t.i);
+      }
       var grp = layer.groupItems.add();
-      grp.name = tag(t.i);
+      grp.name = name;
 
       for (var k = 0; k < t.prims.length; k++) {
         var pr = t.prims[k], it, j;
@@ -148,18 +219,30 @@
         for (j = 0; j < t.guides.v.length; j++) {
           gl = layer.pathItems.add();
           gl.setEntirePath([[ox + t.guides.v[j], oy], [ox + t.guides.v[j], oy - abH]]);
-          gl.guides = true; gl.name = tag(t.i);
+          gl.guides = true; gl.name = name;
         }
         for (j = 0; j < t.guides.h.length; j++) {
           gl = layer.pathItems.add();
           gl.setEntirePath([[ox, oy - t.guides.h[j]], [ox + abW, oy - t.guides.h[j]]]);
-          gl.guides = true; gl.name = tag(t.i);
+          gl.guides = true; gl.name = name;
         }
       }
-      if (grp.pageItems.length === 0) grp.remove();
+      if (grp.pageItems.length === 0) { grp.remove(); continue; }
+      // dentro un oggetto: maschera di ritaglio con una copia della sua forma (le guide non si ritagliano)
+      if (obj && !asGuides) {
+        try {
+          var mask = obj.duplicate(grp, ElementPlacement.PLACEATBEGINNING);
+          if (mask.typename === "CompoundPathItem") mask.pathItems[0].clipping = true;
+          else mask.clipping = true;
+          grp.clipped = true;
+        } catch (eMask) { /* forma non ritagliabile: resta la griglia sul riquadro */ }
+      }
     }
+    // il livello attivo resta quello dell'utente, cosi' l'elenco oggetti del pannello non cambia
+    try { if (prevActive && prevActive !== layer) d.activeLayer = prevActive; } catch (e1) { /* livello bloccato */ }
     layer.locked = !!p.lock;
     app.redraw();
+    if (missing) return Reticolo.ok({ ok: true, count: p.targets.length - missing, error: "objectGone" });
     return Reticolo.ok({ ok: true, count: p.targets.length });
   }
 
@@ -173,7 +256,11 @@
       layer.locked = false;
       layer.visible = true;
       withDocCoords(function () {
-        for (var i = 0; i < p.targets.length; i++) removeTagged(d, layer, p.targets[i]);
+        for (var i = 0; i < p.targets.length; i++) {
+          var tg = p.targets[i];
+          if (tg.obj) removeNamed(layer, "RTC:o:" + tg.obj);
+          else if (tg.i < d.artboards.length) removeTagged(d, layer, tg.i);
+        }
       });
       if (layer.pageItems.length === 0 && layer.layers.length === 0) layer.remove();
       else { layer.visible = wasVisible; layer.locked = wasLocked; }

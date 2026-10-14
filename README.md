@@ -1,6 +1,6 @@
 # Reticolo
 
-![status](https://img.shields.io/badge/status-experimental%20beta-orange) ![version](https://img.shields.io/badge/version-1.1.0--beta-blue) ![apps](https://img.shields.io/badge/Illustrator%20%C2%B7%20Photoshop%20%C2%B7%20InDesign-grey)
+![status](https://img.shields.io/badge/status-experimental%20beta-orange) ![version](https://img.shields.io/badge/version-1.2.0--beta-blue) ![apps](https://img.shields.io/badge/Illustrator%20%C2%B7%20Photoshop%20%C2%B7%20InDesign-grey)
 
 **Layout grids for Adobe Illustrator, Photoshop and InDesign, in one panel.**
 
@@ -15,6 +15,7 @@ It is built for graphic designers, editorial and print designers, UI and web des
 **Highlights**
 
 - Column, modular, baseline and dot grids, with margins, gutters and units in px, mm or pt
+- Grids inside any closed object: pick it from the menu or select it, the grid is clipped to its shape
 - Asymmetric and Fibonacci column ratios, modules snapped to the baseline
 - 30 composition grids: rule of thirds, phi grid, golden spiral, dynamic symmetry, root rectangles, Van de Graaf canon, isometric and hexagonal grids, perspective with 1, 2 and 3 vanishing points, logo golden circles, icon keylines
 - Safe zones for Instagram Story and Reel, TikTok and YouTube
@@ -57,6 +58,11 @@ Versioni supportate: Illustrator CC 2018+, Photoshop 2021+, InDesign 2021+.
 | **Baseline** | Linee orizzontali, verticali, a quadretti o a **punti** (dot grid), con linea forte ogni N e offset della prima linea |
 | **Comp** | *Classiche*: terzi, griglia Phi, spirale aurea, metodo diagonale, croce, quarti, canone Van de Graaf. *Simmetria*: armonica, barocca, sinistra, armatura 14 linee, rettangoli radice 2-5. *Rabat*: rabattimento, rabattimento + diagonali, rettangoli aurei. *Geom*: isometrica, triangolare, esagonale, pentagono, radiale, concentrica, simmetria. *Studio*: cerchi aurei per loghi, keyline icone (griglia 24), prospettiva a 1, 2 e 3 punti. *Social*: zone sicure di IG Story, IG Reel e TikTok, miniatura e banner YouTube, ritaglio 3:4 del profilo Instagram |
 
+- **Griglia dentro un oggetto**: nella tendina, sotto gli artboard, trovi **Oggetto selezionato** e l'elenco degli **oggetti chiusi del livello attivo** (rettangoli, ellissi, poligoni, tracciati chiusi). La griglia viene calcolata sul riquadro dell'oggetto e ritagliata sulla sua forma:
+  - Illustrator: gruppo con maschera di ritaglio sulla forma;
+  - Photoshop: gli oggetti sono i livelli del gruppo attivo, la griglia si aggancia al livello con una maschera di ritaglio;
+  - InDesign: rettangoli dritti e cornici di testo senza ritaglio, le altre forme con *Incolla dentro* (usa gli appunti di sistema).
+  L'elenco si aggiorna quando torni sul pannello o con il pulsante accanto alla tendina.
 - **Target**: tutti gli artboard/pagine, quello attivo o uno specifico. In Photoshop sono supportati gli artboard. Se il documento non ne ha, la griglia copre tutta la tela.
 - **Unità**: px, mm o pt per ogni griglia. In Photoshop mm e pt usano la risoluzione del documento.
 - **Anteprima live**: rigenera la griglia a ogni modifica.
