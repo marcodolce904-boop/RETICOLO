@@ -2,6 +2,7 @@
 
 ## 1.5.0 (beta sperimentale)
 
+- **Spirale aurea e rettangoli aurei**: il blocco aureo è sempre il più grande possibile dentro la pagina, con lo stesso orientamento, centrato. La spirale è un vero cerchio su qualsiasi formato (prima si schiacciava a ellisse su Story, A4 e altri).
 - Nuova famiglia **Web** in Comp, che si adatta alla larghezza dell'artboard (sotto 600 mobile, sotto 840 tablet, da 840 desktop).
 - **Bento responsivo**: scrivi le misure di ogni blocco (`6x4 3x2 ...`, colonne x righe) e i blocchi si dispongono da soli a 12, 8 e 4 colonne, con larghezze esatte opzionali per tablet e mobile (`4x2/4/2`). Gutter e altezza riga modificabili.
 - Altri layout web: card auto-fit con larghezza minima, holy grail, hero + card, schermo diviso 7/5, dashboard.

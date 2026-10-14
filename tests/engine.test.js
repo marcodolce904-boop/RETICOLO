@@ -452,3 +452,23 @@ test("layout web: ogni variante resta nell'artboard e non sovrappone i blocchi a
     });
   });
 });
+
+test("spirale e rettangoli aurei: blocco aureo il più grande possibile, centrato, cerchi veri su qualsiasi formato", function () {
+  [[1440, 900], [600, 1000], [1080, 1920], [900, 900], [595, 842]].forEach(function (s) {
+    var ab = { w: s[0], h: s[1] };
+    var out = E.build({ type: "comp", comp: { family: "classic", variant: "spiral" } }, ab, AI);
+    var land = ab.w >= ab.h, long = Math.min(land ? ab.w : ab.h, (land ? ab.h : ab.w) * 1.6180339887), short = long / 1.6180339887;
+    var bw = land ? long : short, bh = land ? short : long;
+    var xs = [], ys = [];
+    out.prims.filter(function (p) { return p.t === "L"; }).forEach(function (p) { xs.push(p.a[0], p.a[2]); ys.push(p.a[1], p.a[3]); });
+    // il primo quadrato ha lato = lato corto: il primo taglio dista 'short' dal bordo del blocco
+    var sp = out.prims.filter(function (p) { return p.t === "B"; })[0];
+    var allX = sp.p.map(function (q) { return q[0]; }), allY = sp.p.map(function (q) { return q[1]; });
+    assert.ok(Math.min.apply(null, allX) >= (ab.w - bw) / 2 - 0.01 && Math.max.apply(null, allX) <= (ab.w + bw) / 2 + 0.01, s + " blocco in x");
+    assert.ok(Math.min.apply(null, allY) >= (ab.h - bh) / 2 - 0.01 && Math.max.apply(null, allY) <= (ab.h + bh) / 2 + 0.01, s + " blocco in y");
+    out.prims.forEach(function (p) { assert.ok(within(p, ab), s + " dentro l'artboard"); });
+    // primo arco: da (x0, y0+short) a (x0+short, y0): quarto di cerchio con raggio = lato corto
+    var a = sp.p[0], b = sp.p[1];
+    assert.ok(near(Math.abs(b[0] - a[0]), short, 0.05) && near(Math.abs(b[1] - a[1]), short, 0.05), s + " primo arco circolare");
+  });
+});

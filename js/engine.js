@@ -316,9 +316,11 @@
   /** Suddivisione aurea ricorsiva (quadrati + spirale) in un rettangolo locale W x H. */
   function goldenSubdivision(W, H, withSpiral, steps) {
     var land = W >= H;
-    // si costruisce in un rettangolo aureo orizzontale PHI x 1, poi si scala sul frame
-    var sx = (land ? W : H) / PHI, sy = (land ? H : W) / 1;
-    function T(x, y) { var X = x * sx, Y = y * sy; return land ? [X, Y] : [Y, X]; }
+    // si costruisce in un rettangolo aureo orizzontale PHI x 1 (spirale circolare), poi si adatta al frame:
+    // il blocco aureo piu' grande che entra nel frame, con lo stesso orientamento, centrato
+    var long = Math.min(land ? W : H, (land ? H : W) * PHI), sc = long / PHI;
+    var ox = (W - (land ? long : sc)) / 2, oy = (H - (land ? sc : long)) / 2;
+    function T(x, y) { var X = x * sc, Y = y * sc; return land ? [ox + X, oy + Y] : [ox + Y, oy + X]; }
     var lines = [], pts = [];
     var x = 0, y = 0, w = PHI, h = 1;
     for (var k = 0; k < steps; k++) {
