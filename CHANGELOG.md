@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0 (beta sperimentale)
+
+- Nuova famiglia **Layout** in Comp: diagramma di Gutenberg, lettura a Z, lettura a F, lista + dettaglio (1/3 + 2/3), pannello di supporto (2/3 + 1/3), app shell.
+- **Doppia pagina** (famiglia Classiche): due blocchi del canone di Van de Graaf specchiati, con dorso in grassetto.
+- Studio: **vesica piscis** con triangoli equilateri, reticoli di cerchi (triangolare e quadrato, passo regolabile), **icona Android adaptive** (108 / 72 / 66).
+- 16 nuovi preset (73 in totale): pieghe per stampa (bifold, trifold a Z, lettera a C 97/100/100, gate fold 1/2/1, 4 ante), doppia pagina, layout di lettura e interfaccia, nuove griglie Studio. Nuova categoria Layout.
+- `docs/layout-research.md`: ricerca, cosa è stato aggiunto, cosa è stato escluso e perché, con le fonti.
+
 ## 1.3.0 (beta sperimentale)
 
 - Nuova famiglia **Logo** in Comp: logo in alto, logo a sinistra (anche con le distanze in X), typelogo, logo con tagline, linee tipografiche.

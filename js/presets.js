@@ -44,6 +44,12 @@
     { cat: "print", name: { it: "Libro A5 modulare su baseline", en: "A5 book, modules on baseline" }, grid: { type: "modular", unit: "mm", modular: { cols: 2, rows: 6, gx: 5, gy: 4.2333, sizing: "fit", lead: 4.2333, margins: m(18, 15, 25, 20) } } },
     { cat: "print", name: { it: "Biglietto da visita 85 x 55", en: "Business card 85 x 55" }, grid: { type: "modular", unit: "mm", modular: { cols: 2, rows: 3, gx: 3, gy: 3, sizing: "fit", margins: m(5) } } },
     { cat: "print", name: { it: "Canone Van de Graaf", en: "Van de Graaf canon" }, grid: { type: "comp", unit: "mm", comp: { family: "classic", variant: "canon" } } },
+    { cat: "print", name: { it: "Piega: bifold 2 ante", en: "Fold: bifold, 2 panels" }, grid: { type: "columns", unit: "mm", columns: cols(2, 0, 0, { ratios: "1 1", margins: m(0) }) } },
+    { cat: "print", name: { it: "Piega: trifold a Z, 3 ante uguali", en: "Fold: Z-fold, 3 equal panels" }, grid: { type: "columns", unit: "mm", columns: cols(3, 0, 0, { ratios: "1 1 1", margins: m(0) }) } },
+    { cat: "print", name: { it: "Piega: lettera a C (97 / 100 / 100)", en: "Fold: letter fold (97 / 100 / 100)" }, grid: { type: "columns", unit: "mm", columns: cols(3, 0, 0, { ratios: "97 100 100", margins: m(0) }) } },
+    { cat: "print", name: { it: "Piega: gate fold (1 / 2 / 1)", en: "Fold: gate fold (1 / 2 / 1)" }, grid: { type: "columns", unit: "mm", columns: cols(3, 0, 0, { ratios: "1 2 1", margins: m(0) }) } },
+    { cat: "print", name: { it: "Piega: 4 ante", en: "Fold: 4 panels" }, grid: { type: "columns", unit: "mm", columns: cols(4, 0, 0, { ratios: "1 1 1 1", margins: m(0) }) } },
+    { cat: "print", name: { it: "Doppia pagina: canone Van de Graaf", en: "Spread: Van de Graaf canon" }, grid: { type: "comp", unit: "mm", comp: { family: "classic", variant: "spread" } } },
     // ---------------------------------------------------------------- Bento / modulare
     { cat: "bento", name: "Bento 4 x 4", grid: { type: "modular", unit: "px", modular: { cols: 4, rows: 4, gx: 16, gy: 16, sizing: "fit", margins: m(24) } } },
     { cat: "bento", name: "Bento 6 x 4", grid: { type: "modular", unit: "px", modular: { cols: 6, rows: 4, gx: 16, gy: 16, sizing: "fit", margins: m(24) } } },
@@ -64,6 +70,12 @@
     { cat: "comp", name: { it: "Griglia Phi", en: "Phi grid" }, grid: { type: "comp", unit: "px", comp: { family: "classic", variant: "phi" } } },
     { cat: "comp", name: { it: "Simmetria dinamica (armatura 14)", en: "Dynamic symmetry (14-line armature)" }, grid: { type: "comp", unit: "px", comp: { family: "symmetry", variant: "armature" } } },
     { cat: "comp", name: { it: "Isometrica 40 px", en: "Isometric 40 px" }, grid: { type: "comp", unit: "px", comp: { family: "geom", variant: "isometric", spacing: 40 } } },
+    { cat: "layout", name: { it: "Gutenberg (diagonale di lettura)", en: "Gutenberg diagram" }, grid: { type: "comp", unit: "px", comp: { family: "layout", variant: "gutenberg" } } },
+    { cat: "layout", name: { it: "Lettura a Z", en: "Z pattern" }, grid: { type: "comp", unit: "px", comp: { family: "layout", variant: "zPattern" } } },
+    { cat: "layout", name: { it: "Lettura a F", en: "F pattern" }, grid: { type: "comp", unit: "px", comp: { family: "layout", variant: "fPattern" } } },
+    { cat: "layout", name: { it: "Lista + dettaglio (1/3 + 2/3)", en: "List + detail (1/3 + 2/3)" }, grid: { type: "comp", unit: "px", comp: { family: "layout", variant: "listDetail" } } },
+    { cat: "layout", name: { it: "Pannello di supporto (2/3 + 1/3)", en: "Supporting pane (2/3 + 1/3)" }, grid: { type: "comp", unit: "px", comp: { family: "layout", variant: "supportingPane" } } },
+    { cat: "layout", name: { it: "App shell", en: "App shell" }, grid: { type: "comp", unit: "px", comp: { family: "layout", variant: "appShell" } } },
     // ---------------------------------------------------------------- Logo (lockup in unita' X)
     { cat: "logo", name: { it: "Logo in alto, spazio libero 1X", en: "Logo on top, 1X clear space" }, grid: { type: "comp", unit: "px", comp: { family: "logo", variant: "logoTop" } } },
     { cat: "logo", name: { it: "Logo in alto con distanze X", en: "Logo on top with X distances" }, grid: { type: "comp", unit: "px", comp: { family: "logo", variant: "logoTopX" } } },
@@ -78,6 +90,10 @@
     { cat: "studio", name: { it: "Icona 24: keyline", en: "Icon 24: keylines" }, grid: { type: "comp", unit: "px", comp: { family: "studio", variant: "keylines" } } },
     { cat: "studio", name: { it: "Prospettiva a 2 punti", en: "2-point perspective" }, grid: { type: "comp", unit: "px", comp: { family: "studio", variant: "persp2", count: 16 } } },
     { cat: "studio", name: { it: "Prospettiva a 3 punti", en: "3-point perspective" }, grid: { type: "comp", unit: "px", comp: { family: "studio", variant: "persp3", count: 16 } } },
+    { cat: "studio", name: { it: "Logo: vesica piscis", en: "Logo: vesica piscis" }, grid: { type: "comp", unit: "px", comp: { family: "studio", variant: "vesica" } } },
+    { cat: "studio", name: { it: "Logo: cerchi triangolare", en: "Logo: triangular circles" }, grid: { type: "comp", unit: "px", comp: { family: "studio", variant: "circlesTri" } } },
+    { cat: "studio", name: { it: "Logo: cerchi quadrato", en: "Logo: square circles" }, grid: { type: "comp", unit: "px", comp: { family: "studio", variant: "circlesSquare" } } },
+    { cat: "studio", name: { it: "Icona Android adaptive (108 / 72 / 66)", en: "Android adaptive icon (108 / 72 / 66)" }, grid: { type: "comp", unit: "px", comp: { family: "studio", variant: "androidIcon" } } },
     // ---------------------------------------------------------------- Social (zone sicure)
     { cat: "social", name: { it: "Instagram Story: zone sicure", en: "Instagram Story: safe zones" }, grid: { type: "comp", unit: "px", comp: { family: "social", variant: "igStory" } } },
     { cat: "social", name: { it: "Instagram Reel: zone sicure", en: "Instagram Reel: safe zones" }, grid: { type: "comp", unit: "px", comp: { family: "social", variant: "igReel" } } },
@@ -93,5 +109,5 @@
     p.tags = [p.cat];
   });
 
-  return { CATEGORIES: ["web", "mobile", "print", "bento", "baseline", "comp", "logo", "studio", "social"], list: list };
+  return { CATEGORIES: ["web", "mobile", "print", "bento", "baseline", "comp", "logo", "layout", "studio", "social"], list: list };
 });

@@ -455,6 +455,28 @@
   }
 
   /**
+   * Reticolo di cerchi sovrapposti di raggio uguale al passo (centri su reticolo triangolare o quadrato).
+   * I cerchi interi restano curve Bezier; quelli che escono dal riquadro vengono ritagliati.
+   */
+  function circleLattice(fr, s, tri) {
+    var dy = tri ? s * Math.sqrt(3) / 2 : s, r = s, out = [], i, j;
+    var nx = Math.ceil(fr.w / s / 2) + 2, ny = Math.ceil(fr.h / dy / 2) + 2;
+    if ((2 * nx + 1) * (2 * ny + 1) > 20000) return null;
+    var cx0 = fr.x + fr.w / 2, cy0 = fr.y + fr.h / 2;
+    for (j = -ny; j <= ny; j++) {
+      for (i = -nx; i <= nx; i++) {
+        var cx = cx0 + i * s + (tri && Math.abs(j) % 2 ? s / 2 : 0), cy = cy0 + j * dy;
+        if (cx + r < fr.x - EPS || cx - r > fr.x + fr.w + EPS || cy + r < fr.y - EPS || cy - r > fr.y + fr.h + EPS) continue;
+        var circ = circleBezier(cx, cy, r);
+        if (cx - r >= fr.x - EPS && cx + r <= fr.x + fr.w + EPS && cy - r >= fr.y - EPS && cy + r <= fr.y + fr.h + EPS) out.push(circ);
+        else out = out.concat(clipPolyline(flattenBezier(circ, 12), true, fr));
+        if (out.length > 6000) return null;
+      }
+    }
+    return out;
+  }
+
+  /**
    * Linee tipografiche tipiche, in frazioni dell'altezza totale (ascendente in alto, discendente in basso):
    * ascendente, maiuscole, altezza della x, linea di base, discendente. Sono proporzioni medie dei caratteri
    * latini: vanno adattate al carattere reale.
@@ -682,6 +704,78 @@
         prims = lg.prims; logoX = lg.x;
         break;
       }
+      case "spread": {
+        // doppia pagina: due blocchi di testo speculari, margini a nonni (interno 1/9, esterno 2/9, sopra 1/9, sotto 2/9)
+        var pw = W / 2, nw = pw / 9, nh = H / 9;
+        var blockL = function (x, y, w, h) {
+          var a = mp(x, y), b = mp(x + w, y + h);
+          return R(Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
+        };
+        push(seg(mp, pw, 0, pw, H, true));
+        push(seg(mp, 0, 0, pw, H)); push(seg(mp, pw, 0, 0, H));
+        push(seg(mp, pw, 0, W, H)); push(seg(mp, W, 0, pw, H));
+        prims.push(blockL(2 * nw, nh, pw - 3 * nw, H - 3 * nh), blockL(pw + nw, nh, pw - 3 * nw, H - 3 * nh));
+        break;
+      }
+      case "gutenberg":
+        // quattro aree (primaria, forte, debole, terminale) e gravita' di lettura dall'alto a sinistra al basso a destra
+        vline(0.5); hline(0.5); push(seg(mp, 0, 0, W, H, true));
+        break;
+      case "zPattern": {
+        var zp = [[0.08, 0.1], [0.92, 0.1], [0.08, 0.9], [0.92, 0.9]].map(function (q) {
+          var m = mp(q[0] * W, q[1] * H); return [r3(m[0]), r3(m[1])];
+        });
+        prims.push({ t: "P", c: false, p: zp });
+        break;
+      }
+      case "fPattern":
+        // due barre orizzontali (la seconda piu' corta) e la scansione verticale lungo il lato sinistro
+        push(seg(mp, W * 0.08, H * 0.12, W * 0.92, H * 0.12));
+        push(seg(mp, W * 0.08, H * 0.38, W * 0.62, H * 0.38));
+        push(seg(mp, W * 0.08, H * 0.12, W * 0.08, H * 0.92, true));
+        break;
+      case "listDetail": case "supportingPane": case "appShell": {
+        var g = W / 80, pr = function (x, y, w, h) {
+          var a = mp(x, y), b = mp(x + w, y + h);
+          return R(Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
+        };
+        if (v === "listDetail") prims.push(pr(0, 0, W / 3 - g / 2, H), pr(W / 3 + g / 2, 0, 2 * W / 3 - g / 2, H));
+        else if (v === "supportingPane") prims.push(pr(0, 0, 2 * W / 3 - g / 2, H), pr(2 * W / 3 + g / 2, 0, W / 3 - g / 2, H));
+        else {
+          // proporzioni di un'interfaccia a 1440 x 900: barra laterale 240 (1/6), barra superiore 64 (1/14)
+          var sb = W / 6, tb = H / 14;
+          prims.push(pr(0, 0, sb, H), pr(sb + g, 0, W - sb - g, tb), pr(sb + g, tb + g, W - sb - g, H - tb - g));
+        }
+        break;
+      }
+      case "vesica": {
+        var vr = Math.min(W / 3, H / 2), vcx = fr.x + W / 2, vcy = fr.y + H / 2, hh = vr * Math.sqrt(3) / 2;
+        prims.push(circleBezier(vcx - vr / 2, vcy, vr), circleBezier(vcx + vr / 2, vcy, vr));
+        push(seg(mp, W / 2 - 1.5 * vr, H / 2, W / 2 + 1.5 * vr, H / 2));
+        push(seg(mp, W / 2, H / 2 - vr, W / 2, H / 2 + vr));
+        // i due triangoli equilateri dentro la vesica
+        [-1, 1].forEach(function (sgn) {
+          prims.push({ t: "P", c: true, p: [[vcx - vr / 2, vcy], [vcx + vr / 2, vcy], [vcx, vcy + sgn * hh]].map(function (q) { return [r3(q[0]), r3(q[1])]; }) });
+        });
+        break;
+      }
+      case "circlesTri": case "circlesSquare": {
+        var lat = circleLattice(fr, Math.max(4, p.spacing * f), v === "circlesTri");
+        if (!lat) return { error: "tooDense" };
+        prims = lat;
+        break;
+      }
+      case "androidIcon": {
+        // tela 108, finestra visibile 72, zona sicura (cerchio) 66: valori da fonti non ufficiali, verificare
+        var S = Math.min(W, H), au = S / 108, ax = (W - S) / 2, ay = (H - S) / 2;
+        var sq = function (inset) {
+          var a = mp(ax + inset * au, ay + inset * au), b = mp(ax + S - inset * au, ay + S - inset * au);
+          return R(Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
+        };
+        prims.push(sq(0), sq(18), circleBezier(fr.x + W / 2, fr.y + H / 2, 33 * au));
+        push(seg(mp, ax + S / 2, ay, ax + S / 2, ay + S)); push(seg(mp, ax, ay + S / 2, ax + S, ay + S / 2));
+        break;
+      }
       case "typeLines":
         prims = buildTypeLines({ x: 0, y: 0, w: W, h: H }, mp);
         break;
@@ -749,15 +843,16 @@
   }
 
   var VARIANTS = {
-    classic: ["thirds", "phi", "spiral", "diagonal", "cross", "quadrants", "canon"],
+    classic: ["thirds", "phi", "spiral", "diagonal", "cross", "quadrants", "canon", "spread"],
     symmetry: ["harmonic", "baroque", "sinister", "armature", "root2", "root3", "root4", "root5"],
     rabat: ["rabatment", "rabatDiag", "goldenRects"],
     geom: ["isometric", "triangular", "hexagonal", "pentagon", "radial", "concentric", "symmetry"],
-    studio: ["goldenCircles", "keylines", "persp1", "persp2", "persp3"],
+    studio: ["goldenCircles", "keylines", "vesica", "circlesTri", "circlesSquare", "androidIcon", "persp1", "persp2", "persp3"],
+    layout: ["gutenberg", "zPattern", "fPattern", "listDetail", "supportingPane", "appShell"],
     social: ["igStory", "igReel", "tiktok", "igProfile", "ytThumb", "ytBanner"],
     logo: ["logoTop", "logoTopX", "logoLeft", "logoLeftX", "typelogo", "logoTagline", "typeLines"]
   };
-  var USES_SPACING = { isometric: 1, triangular: 1, hexagonal: 1, concentric: 1 };
+  var USES_SPACING = { isometric: 1, triangular: 1, hexagonal: 1, concentric: 1, circlesTri: 1, circlesSquare: 1 };
   var USES_COUNT = { radial: 1, persp1: 1, persp2: 1, persp3: 1 };
   var USES_LOGO = { logoTop: 1, logoTopX: 1, logoLeft: 1, logoLeftX: 1, typelogo: 1, logoTagline: 1 };
 

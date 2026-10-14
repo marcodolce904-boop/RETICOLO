@@ -244,3 +244,107 @@ test("type (linee): cinque linee, la linea di base e' in grassetto", function ()
   assert.equal(out.prims.filter(function (p) { return p.b; }).length, 1);
   assert.deepEqual(out.prims.map(function (p) { return p.a[1]; }), [0, 24, 104, 312, 400]);
 });
+
+// ---- layout di lettura e interfacce, doppia pagina, cerchi
+function comp(family, variant, ab, extra) {
+  var c = { family: family, variant: variant };
+  for (var k in extra || {}) c[k] = extra[k];
+  return E.build({ type: "comp", comp: c }, ab || { w: 900, h: 600 }, AI);
+}
+
+test("doppia pagina: blocchi del canone con margini 2/9 e 1/9, dorso in grassetto", function () {
+  var out = comp("classic", "spread");
+  var rects = out.prims.filter(function (p) { return p.t === "R"; });
+  assert.equal(rects.length, 2);
+  var l = rects[0].a, r = rects[1].a;
+  assert.ok(near(l[0], 100) && near(l[2], 300), "pagina sinistra: esterno 2/9, interno 1/9");
+  assert.ok(near(r[0], 500) && near(r[0] + r[2], 800), "pagina destra speculare");
+  assert.ok(near(l[1], 600 / 9) && near(600 - (l[1] + l[3]), 600 * 2 / 9), "alto H/9, basso 2H/9");
+  var spine = out.prims.filter(function (p) { return p.t === "L" && p.b; })[0];
+  assert.ok(spine && near(spine.a[0], 450) && near(spine.a[2], 450));
+});
+
+test("Gutenberg: croce centrale e diagonale forte in alto a sinistra", function () {
+  var out = comp("layout", "gutenberg");
+  assert.equal(out.prims.length, 3);
+  var d = out.prims.filter(function (p) { return p.b; })[0];
+  assert.deepEqual(d.a, [0, 0, 900, 600]);
+});
+
+test("lettura a Z: un solo tracciato aperto a 4 punti", function () {
+  var out = comp("layout", "zPattern");
+  assert.equal(out.prims.length, 1);
+  assert.equal(out.prims[0].p.length, 4);
+  assert.ok(near(out.prims[0].p[0][1], out.prims[0].p[1][1]) && near(out.prims[0].p[2][1], out.prims[0].p[3][1]));
+});
+
+test("lettura a F: due barre e gambo forte a sinistra", function () {
+  var out = comp("layout", "fPattern");
+  var bars = out.prims.filter(function (p) { return !p.b; });
+  assert.equal(bars.length, 2);
+  assert.ok(bars[0].a[2] - bars[0].a[0] > bars[1].a[2] - bars[1].a[0], "la seconda barra è più corta");
+  assert.ok(out.prims.some(function (p) { return p.b && near(p.a[0], p.a[2]); }));
+});
+
+test("lista + dettaglio e pannello di supporto: 1/3 e 2/3 con gutter", function () {
+  var ld = comp("layout", "listDetail").prims, sp = comp("layout", "supportingPane").prims;
+  assert.ok(near(ld[0].a[2] / (ld[0].a[2] + ld[1].a[2]), 1 / 3, 0.005));
+  assert.ok(near(sp[0].a[2] / (sp[0].a[2] + sp[1].a[2]), 2 / 3, 0.005));
+  assert.ok(ld[1].a[0] > ld[0].a[0] + ld[0].a[2], "c'è un gutter");
+});
+
+test("app shell: barra laterale W/6 e barra superiore H/14", function () {
+  var r = comp("layout", "appShell").prims.filter(function (p) { return p.t === "R"; });
+  assert.equal(r.length, 3);
+  assert.ok(near(r[0].a[2], 150) && near(r[1].a[3], 600 / 14));
+});
+
+test("vesica piscis: due cerchi con i centri a distanza r, due triangoli equilateri", function () {
+  var out = comp("studio", "vesica");
+  assert.equal(out.prims.filter(function (p) { return p.t === "B"; }).length, 2);
+  var tris = out.prims.filter(function (p) { return p.t === "P"; });
+  assert.equal(tris.length, 2);
+  var a = tris[0].p;
+  var side = Math.sqrt(Math.pow(a[1][0] - a[0][0], 2) + Math.pow(a[1][1] - a[0][1], 2));
+  var s2 = Math.sqrt(Math.pow(a[2][0] - a[0][0], 2) + Math.pow(a[2][1] - a[0][1], 2));
+  assert.ok(near(side, s2, 0.01), "triangolo equilatero");
+  assert.ok(near(side, 300), "lato = raggio");
+});
+
+test("reticoli di cerchi: niente fuori dal riquadro, tooDense a passo minuscolo", function () {
+  ["circlesTri", "circlesSquare"].forEach(function (v) {
+    var out = comp("studio", v, { w: 900, h: 600 }, { spacing: 80 });
+    assert.equal(out.error, undefined, v);
+    out.prims.forEach(function (p) { assert.ok(within(p, { w: 900, h: 600 }), v); });
+    assert.equal(comp("studio", v, { w: 900, h: 600 }, { spacing: 1 }).error, "tooDense", v);
+  });
+});
+
+test("icona Android adaptive: canvas 108, area sicura 72, cerchio 66 (in unità del riquadro)", function () {
+  var out = comp("studio", "androidIcon", { w: 540, h: 540 });
+  var rects = out.prims.filter(function (p) { return p.t === "R"; });
+  assert.ok(near(rects[1].a[0], 90) && near(rects[1].a[2], 360), "inset 18/108");
+  var circle = out.prims.filter(function (p) { return p.t === "B"; })[0];
+  var xs = circle.p.map(function (q) { return q[0]; });
+  assert.ok(near(Math.max.apply(null, xs) - Math.min.apply(null, xs), 330, 0.5), "diametro 66/108");
+});
+
+test("pieghe: il preset lettera a C ha ante 97 / 100 / 100", function () {
+  var P = require("../js/presets.js");
+  var pr = P.list.filter(function (p) { return p.grid.columns && p.grid.columns.ratios === "97 100 100"; })[0];
+  assert.ok(pr);
+  var out = E.build(pr.grid, { w: 297, h: 210 }, AI);
+  var w = out.prims.map(function (q) { return q.a[2]; });
+  assert.deepEqual(w.map(Math.round), [97, 100, 100]);
+});
+
+test("tutti i preset si costruiscono su formati diversi", function () {
+  var P = require("../js/presets.js");
+  [[595, 842], [1080, 1920], [1440, 900]].forEach(function (s) {
+    P.list.forEach(function (p) {
+      var out = E.build(JSON.parse(JSON.stringify(p.grid)), { w: s[0], h: s[1] }, AI);
+      assert.equal(out.error, undefined, JSON.stringify(p.name));
+      assert.ok(out.prims.length > 0, JSON.stringify(p.name));
+    });
+  });
+});
