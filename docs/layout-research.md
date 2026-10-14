@@ -52,7 +52,7 @@ Una griglia disegnata su un artboard è statica, quindi la responsività è codi
 | da 600 a 839 | medium (tablet) | 8 |
 | da 840 | expanded (desktop) | 12 |
 
-Soglie 600 e 840 e colonne 4 / 8 / 12: [window size classes di Material 3](https://developer.android.com/develop/ui/compose/layouts/adaptive/window-size-classes) per le soglie; il numero di colonne per classe viene da guide che seguono Material (non dalla specifica ufficiale, che non ho letto). Le soglie sono fisse nel motore (`BP_MEDIUM`, `BP_EXPANDED`).
+Soglie 600 e 840 e colonne 4 / 8 / 12: [window size classes di Material 3](https://developer.android.com/develop/ui/compose/layouts/adaptive/window-size-classes) per le soglie; il numero di colonne per classe viene da guide che seguono Material (non dalla specifica ufficiale, che non ho letto). Dalla versione 1.6.0 le soglie sono modificabili (menu con Material 3, Tailwind 768 / 1024 e Bootstrap 768 / 992, oppure due numeri liberi) e anche le colonne per classe.
 
 ## Bento responsivo
 
@@ -78,10 +78,28 @@ Tutti seguono le stesse classi di larghezza.
 
 Le proporzioni interne (altezza header, larghezza sidebar, ecc.) sono valori scelti da me come punto di partenza, non standard.
 
+## Variabili modificabili (1.6.0)
+
+| Layout | Variabili |
+|---|---|
+| Tutti | gutter, soglie tablet e desktop (con preset Material 3, Tailwind, Bootstrap) |
+| Bento | blocchi (`LxA`, con override `/tablet/mobile`), altezza riga, colonne desktop, tablet e mobile |
+| Masonry | altezze dei blocchi, colonne desktop (tablet 2/3, mobile 1/2), altezza unità |
+| Card auto-fit | larghezza minima, righe, altezza riga |
+| Holy grail | altezza header, altezza footer, larghezza sidebar |
+| Hero + card | altezza hero, numero di card |
+| Schermo diviso | pannello sinistro su 12 |
+| Dashboard | larghezza sidebar, altezza barra superiore, numero di KPI |
+
+Le variabili sono percentuali del riquadro (header, sidebar, hero, barra) o numeri, così restano valide su ogni formato. Valori impossibili, per esempio header e footer oltre l'altezza, danno un errore invece di disegnare rettangoli rovesciati.
+
+## Masonry
+
+Il vero masonry ha altezze che dipendono dal contenuto, che un pannello di griglie non conosce. Qui le altezze le scrivi tu, una per blocco, in unità di riga: ogni blocco va nella colonna più bassa. Il risultato è la disposizione "a cascata" con misure note, utile per galleria, portfolio e blog.
+
 ## Non incluso
 
-- **Masonry**: altezze dipendenti dal contenuto, non descrivibili con blocchi di misura nota.
-- **Breakpoint personalizzati**: per ora fissi. Se ti servono (per esempio Tailwind 640 / 768 / 1024 / 1280) si possono rendere modificabili.
+- **Breakpoint multipli** (Tailwind ne ha cinque): il modello ha tre classi, mobile, tablet, desktop. Con le soglie libere si copre il caso comune.
 - **Esportazione del codice CSS**: fuori dallo scopo di un pannello di griglie, ma il bento è già descritto in termini di colonne, righe e span.
 
 Fonti consultate: guide su bento grid e CSS Grid (breakpoint, span per classe, `grid-auto-flow: dense`, `minmax(0, 1fr)`, altezza di riga su mobile), pattern di layout CSS (holy grail, sidebar, card `auto-fit`), documentazione Android sulle window size classes.

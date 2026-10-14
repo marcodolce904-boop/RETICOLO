@@ -431,7 +431,7 @@ test("bento: gutter tra i blocchi e testo non valido", function () {
   var r = rectsOf(webComp("bento", 1210, 800, { items: "6x4 6x4", wgap: 10 }));
   assert.ok(near(r[1][0] - (r[0][0] + r[0][2]), 10));
   assert.equal(webComp("bento", 1440, 800, { items: "6x4 pippo" }).error, "badItems");
-  assert.equal(webComp("bento", 1440, 800, { items: "13x1" }).error, "badItems");
+  assert.equal(webComp("bento", 1440, 800, { items: "25x1" }).error, "badItems");
 });
 
 test("card auto-fit: il numero di colonne dipende dalla larghezza e dalla minima", function () {
@@ -471,4 +471,57 @@ test("spirale e rettangoli aurei: blocco aureo il più grande possibile, centrat
     var a = sp.p[0], b = sp.p[1];
     assert.ok(near(Math.abs(b[0] - a[0]), short, 0.05) && near(Math.abs(b[1] - a[1]), short, 0.05), s + " primo arco circolare");
   });
+});
+
+test("breakpoint personalizzati: Tailwind 768 / 1024", function () {
+  assert.equal(E.widthClass(700, 768, 1024), "compact");
+  assert.equal(E.widthClass(768, 768, 1024), "medium");
+  assert.equal(E.widthClass(1024, 768, 1024), "expanded");
+  assert.equal(E.widthClass(700), "medium", "senza soglie valgono 600 / 840");
+  var r = rectsOf(webComp("bento", 800, 800, { bpM: 768, bpE: 1024, items: "12x1" }));
+  assert.ok(near(r[0][2], 800), "a 800 con soglie 768/1024 è tablet: 12 su 12 occupa tutta la riga");
+  assert.equal(rectsOf(webComp("bento", 800, 800, { bpM: 768, bpE: 1024, items: "6x1 6x1" })).length, 2);
+});
+
+test("bento: colonne per classe personalizzate (16 / 6 / 2)", function () {
+  var wide = rectsOf(webComp("bento", 1600, 800, { colsE: 16, items: "4x1 4x1 4x1 4x1", wrow: 100 }));
+  assert.ok(near(wide[0][2], 400) && near(wide[3][0], 1200), "4 blocchi da 4 su 16");
+  var cols = E.bentoCols({ colsE: 12, colsM: 20, colsC: 9 });
+  assert.deepEqual(cols, { expanded: 12, medium: 12, compact: 9 }, "medium e compact non superano la classe sopra");
+  var mob = rectsOf(webComp("bento", 400, 800, { colsC: 2, items: "12x1 6x1 6x1", wrow: 100 }));
+  assert.ok(near(mob[0][2], 400) && near(mob[1][2], 200) && near(mob[2][0], 200), "mobile a 2 colonne");
+});
+
+test("masonry: ogni blocco nella colonna più bassa, colonne diverse per classe", function () {
+  var r = rectsOf(webComp("masonry", 1200, 1000, { mitems: "2 1 1 1", mcols: 2, wrow: 100 }));
+  assert.equal(r.length, 4);
+  assert.ok(near(r[0][0], 0) && near(r[1][0], 600) && near(r[2][0], 600) && near(r[3][0], 0), "il blocco va nella colonna più bassa, a parità nella prima");
+  assert.ok(near(r[3][1], 200), "il quarto sta sotto il primo");
+  assert.ok(near(r[0][3], 200) && near(r[1][3], 100) && near(r[2][1], 100));
+  assert.equal(new Set(rectsOf(webComp("masonry", 1440, 900)).map(function (a) { return a[0].toFixed(1); })).size, 4);
+  assert.equal(new Set(rectsOf(webComp("masonry", 700, 900)).map(function (a) { return a[0].toFixed(1); })).size, 3);
+  assert.equal(new Set(rectsOf(webComp("masonry", 390, 900)).map(function (a) { return a[0].toFixed(1); })).size, 2);
+  assert.equal(webComp("masonry", 1440, 900, { mitems: "3 abc" }).error, "badItems");
+});
+
+test("proporzioni interne dei layout web modificabili", function () {
+  var hg = rectsOf(webComp("holyGrail", 1440, 1000, { whead: 20, wfoot: 10, wside: 25 }));
+  assert.ok(near(hg[0][3], 200) && near(hg[4][3], 100) && near(hg[1][2], 360), "header 20%, footer 10%, sidebar 25%");
+  var hero = rectsOf(webComp("heroCards", 1440, 1000, { whero: 60, wcards: 3 }));
+  assert.equal(hero.length, 4);
+  assert.ok(near(hero[0][3], 600));
+  var sp = rectsOf(webComp("split", 1200, 600, { wsplit: 5 }));
+  assert.ok(near(sp[0][2], 500));
+  var db = rectsOf(webComp("dashboard", 1440, 900, { wnav: 20, wtop: 10, wkpi: 3 }));
+  assert.ok(near(db[0][2], 288) && near(db[1][3], 90));
+  assert.equal(db.length, 1 + 1 + 3 + 3);
+});
+
+test("misure impossibili nei layout web danno un errore e non rettangoli rovesciati", function () {
+  assert.equal(webComp("holyGrail", 1440, 800, { whead: 50, wfoot: 50 }).error, "tooNarrow");
+  assert.equal(webComp("bento", 100, 800, { wgap: 50 }).error, "tooNarrow");
+});
+
+test("ogni layout web ha i suoi campi nel pannello", function () {
+  E.VARIANTS.web.forEach(function (v) { assert.ok(E.WEB_FIELDS[v] && E.WEB_FIELDS[v].indexOf("wgap") >= 0, v); });
 });

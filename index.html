@@ -135,24 +135,87 @@
         </nav>
         <div class="variants" id="variants"></div>
         <p class="help" data-show="comp.family=layout" data-i18n="layout.note" style="margin:-4px 0 10px"></p>
-        <div data-show="comp.web">
+        <div data-show="comp.f:wgap">
           <p class="help" data-i18n="web.note" style="margin:-4px 0 10px"></p>
-          <label class="field" data-show="comp.items"><span class="lbl" data-i18n="f.items"></span>
+          <label class="field" data-show="comp.f:items"><span class="lbl" data-i18n="f.items"></span>
             <input class="input mono" data-bind="comp.items" data-text maxlength="400" placeholder="6x4 3x2 3x2 6x2 4x2/4/2 ..." spellcheck="false">
             <span class="help" data-i18n="f.items.help"></span>
           </label>
+          <label class="field" data-show="comp.f:mitems"><span class="lbl" data-i18n="f.mitems"></span>
+            <input class="input mono" data-bind="comp.mitems" data-text maxlength="400" placeholder="3 2 4 2 3 2 ..." spellcheck="false">
+            <span class="help" data-i18n="f.mitems.help"></span>
+          </label>
           <div class="grid2">
-            <label class="field"><span class="lbl" data-i18n="f.wgap"></span>
+            <label class="field" data-show="comp.f:wgap"><span class="lbl" data-i18n="f.wgap"></span>
               <div class="num left"><input data-bind="comp.wgap" data-min="0" inputmode="decimal"><span class="suffix" data-unit></span></div>
             </label>
-            <label class="field"><span class="lbl" data-i18n="f.wrow"></span>
+            <label class="field" data-show="comp.f:wrow"><span class="lbl" data-i18n="f.wrow"></span>
               <div class="num left"><input data-bind="comp.wrow" data-min="0" inputmode="decimal"><span class="suffix" data-unit></span></div>
             </label>
-            <label class="field" data-show="comp.min"><span class="lbl" data-i18n="f.wmin"></span>
+            <label class="field" data-show="comp.f:wmin"><span class="lbl" data-i18n="f.wmin"></span>
               <div class="num left"><input data-bind="comp.wmin" data-min="1" inputmode="decimal"><span class="suffix" data-unit></span></div>
             </label>
-            <label class="field" data-show="comp.min"><span class="lbl" data-i18n="f.wrows"></span>
+            <label class="field" data-show="comp.f:wrows"><span class="lbl" data-i18n="f.wrows"></span>
               <div class="num left"><input data-bind="comp.wrows" data-int data-min="1" data-max="40" inputmode="numeric"></div>
+            </label>
+            <label class="field" data-show="comp.f:mcols"><span class="lbl" data-i18n="f.mcols"></span>
+              <div class="num left"><input data-bind="comp.mcols" data-int data-min="1" data-max="12" inputmode="numeric"></div>
+            </label>
+            <label class="field" data-show="comp.f:whead"><span class="lbl" data-i18n="f.whead"></span>
+              <div class="num left"><input data-bind="comp.whead" data-min="0" data-max="60" inputmode="decimal"><span class="suffix">%</span></div>
+            </label>
+            <label class="field" data-show="comp.f:wfoot"><span class="lbl" data-i18n="f.wfoot"></span>
+              <div class="num left"><input data-bind="comp.wfoot" data-min="0" data-max="60" inputmode="decimal"><span class="suffix">%</span></div>
+            </label>
+            <label class="field" data-show="comp.f:wside"><span class="lbl" data-i18n="f.wside"></span>
+              <div class="num left"><input data-bind="comp.wside" data-min="0" data-max="45" inputmode="decimal"><span class="suffix">%</span></div>
+            </label>
+            <label class="field" data-show="comp.f:whero"><span class="lbl" data-i18n="f.whero"></span>
+              <div class="num left"><input data-bind="comp.whero" data-min="5" data-max="90" inputmode="decimal"><span class="suffix">%</span></div>
+            </label>
+            <label class="field" data-show="comp.f:wcards"><span class="lbl" data-i18n="f.wcards"></span>
+              <div class="num left"><input data-bind="comp.wcards" data-int data-min="1" data-max="24" inputmode="numeric"></div>
+            </label>
+            <label class="field" data-show="comp.f:wsplit"><span class="lbl" data-i18n="f.wsplit"></span>
+              <div class="num left"><input data-bind="comp.wsplit" data-int data-min="1" data-max="11" inputmode="numeric"><span class="suffix">/ 12</span></div>
+            </label>
+            <label class="field" data-show="comp.f:wnav"><span class="lbl" data-i18n="f.wnav"></span>
+              <div class="num left"><input data-bind="comp.wnav" data-min="3" data-max="40" inputmode="decimal"><span class="suffix">%</span></div>
+            </label>
+            <label class="field" data-show="comp.f:wtop"><span class="lbl" data-i18n="f.wtop"></span>
+              <div class="num left"><input data-bind="comp.wtop" data-min="3" data-max="30" inputmode="decimal"><span class="suffix">%</span></div>
+            </label>
+            <label class="field" data-show="comp.f:wkpi"><span class="lbl" data-i18n="f.wkpi"></span>
+              <div class="num left"><input data-bind="comp.wkpi" data-int data-min="1" data-max="8" inputmode="numeric"></div>
+            </label>
+          </div>
+          <div data-show="comp.f:bp">
+            <label class="field" style="margin-top:6px"><span class="lbl" data-i18n="f.bpPreset"></span>
+              <select class="select" id="bpPreset">
+                <option value="600,840">Material 3 (600 / 840)</option>
+                <option value="768,1024">Tailwind (768 / 1024)</option>
+                <option value="768,992">Bootstrap (768 / 992)</option>
+                <option value="custom" data-i18n="f.bpCustom"></option>
+              </select>
+            </label>
+            <div class="grid2">
+              <label class="field" data-show="comp.f:bp"><span class="lbl" data-i18n="f.bpM"></span>
+              <div class="num left"><input data-bind="comp.bpM" data-min="1" inputmode="decimal"><span class="suffix">px</span></div>
+            </label>
+            <label class="field" data-show="comp.f:bp"><span class="lbl" data-i18n="f.bpE"></span>
+              <div class="num left"><input data-bind="comp.bpE" data-min="1" inputmode="decimal"><span class="suffix">px</span></div>
+            </label>
+            </div>
+          </div>
+          <div class="grid3" data-show="comp.f:cols">
+            <label class="field" data-show="comp.f:cols"><span class="lbl" data-i18n="f.colsE"></span>
+              <div class="num left"><input data-bind="comp.colsE" data-int data-min="1" data-max="24" inputmode="numeric"></div>
+            </label>
+            <label class="field" data-show="comp.f:cols"><span class="lbl" data-i18n="f.colsM"></span>
+              <div class="num left"><input data-bind="comp.colsM" data-int data-min="1" data-max="24" inputmode="numeric"></div>
+            </label>
+            <label class="field" data-show="comp.f:cols"><span class="lbl" data-i18n="f.colsC"></span>
+              <div class="num left"><input data-bind="comp.colsC" data-int data-min="1" data-max="24" inputmode="numeric"></div>
             </label>
           </div>
         </div>
@@ -335,7 +398,7 @@
       </div>
 
       <button class="btn danger small" type="button" id="btnReset" data-i18n="set.reset"></button>
-      <p class="help" style="margin-top:16px">Reticolo 1.5.0 beta</p>
+      <p class="help" style="margin-top:16px">Reticolo 1.6.0 beta</p>
     </section>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>

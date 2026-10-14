@@ -34,7 +34,9 @@
       columns: { count: 12, gutter: 24, maxWidth: 0, ratios: "", lead: 0, margins: margins(0, 24, 0, 24) },
       modular: { cols: 4, rows: 4, gx: 16, gy: 16, sizing: "fit", mw: 120, mh: 120, lead: 0, margins: margins(24, 24, 24, 24) },
       baseline: { dir: "h", spacing: 8, boldEvery: 0, offset: 0, margins: margins(0, 0, 0, 0) },
-      comp: { family: "classic", variant: "thirds", spacing: 40, count: 12, flipH: false, flipV: false, x: 0, clear: 1, sym: 4, ww: 10, wh: 2, gap: 1, items: "6x4 3x2 3x2 6x2 4x2/4/2 4x2/4/2 4x2/8/4 6x2/4/4 6x2/4/4", wgap: 16, wrow: 0, wmin: 240, wrows: 3, margins: margins(0, 0, 0, 0) }
+      comp: { family: "classic", variant: "thirds", spacing: 40, count: 12, flipH: false, flipV: false, x: 0, clear: 1, sym: 4, ww: 10, wh: 2, gap: 1, items: "6x4 3x2 3x2 6x2 4x2/4/2 4x2/4/2 4x2/8/4 6x2/4/4 6x2/4/4", mitems: "3 2 4 2 3 2 2 4 3 2 3 2", mcols: 4, wgap: 16, wrow: 0, wmin: 240, wrows: 3,
+        bpM: 600, bpE: 840, colsE: 12, colsM: 8, colsC: 4,
+        whead: 10, wfoot: 8, wside: 17, whero: 42, wcards: 4, wsplit: 7, wnav: 14, wtop: 8, wkpi: 4, margins: margins(0, 0, 0, 0) }
     };
   }
 
@@ -495,15 +497,30 @@
 
   // ---------------------------------------------------------------- layout web responsive
 
-  // Classi di larghezza come le window size classes di Material 3: compact < 600, medium < 840, expanded.
-  var BP_MEDIUM = 600, BP_EXPANDED = 840, BENTO_COLS = { expanded: 12, medium: 8, compact: 4 };
-  var MAX_BENTO_ITEMS = 60, MAX_BENTO_SPAN = 12;
+  // Classi di larghezza (default come le window size classes di Material 3): compact < 600, medium < 840, expanded.
+  var MAX_BENTO_ITEMS = 60, MAX_BENTO_SPAN = 24, MAX_BENTO_COLS = 24, MAX_MASONRY_COLS = 12;
 
-  function widthClass(w) { return w >= BP_EXPANDED ? "expanded" : w >= BP_MEDIUM ? "medium" : "compact"; }
+  function widthClass(w, bpM, bpE) {
+    var m = bpM > 0 ? bpM : 600, e = bpE > 0 ? bpE : 840;
+    if (e < m) e = m;
+    return w >= e ? "expanded" : w >= m ? "medium" : "compact";
+  }
+
+  function clampInt(v, lo, hi, def) {
+    v = Math.round(Number(v));
+    if (!isFinite(v)) v = def;
+    return Math.max(lo, Math.min(hi, v));
+  }
+
+  /** Colonne del bento per classe: i valori di p (colsE, colsM, colsC) con limiti e ordine sensato. */
+  function bentoCols(p) {
+    var e = clampInt(p.colsE, 1, MAX_BENTO_COLS, 12), m = clampInt(p.colsM, 1, MAX_BENTO_COLS, 8), c = clampInt(p.colsC, 1, MAX_BENTO_COLS, 4);
+    return { expanded: e, medium: Math.min(m, e), compact: Math.min(c, m, e) };
+  }
 
   /**
-   * Blocchi del bento: "6x4" = 6 colonne x 4 righe (su 12 colonne); "6x4/4/2" aggiunge le larghezze
-   * esatte su tablet (8 colonne) e su mobile (4 colonne). Restituisce null se il testo non è valido.
+   * Blocchi del bento: "6x4" = 6 colonne x 4 righe (larghezza misurata sulle colonne desktop);
+   * "6x4/4/2" aggiunge le larghezze esatte su tablet e su mobile. Restituisce null se il testo non è valido.
    */
   function parseBento(str) {
     if (typeof str !== "string" || !str.trim()) return [];
@@ -519,26 +536,34 @@
     return out;
   }
 
+  /** Altezze dei blocchi del masonry: numeri positivi (in unità di riga). null se non valido. */
+  function parseHeights(str) {
+    if (typeof str !== "string" || !str.trim()) return [];
+    var out = str.trim().split(/[\s,;]+/).map(function (x) { return parseFloat(x.replace(",", ".")); });
+    return out.length <= MAX_BENTO_ITEMS && out.every(function (x) { return isFinite(x) && x > 0 && x <= 100; }) ? out : null;
+  }
+
   /** Larghezza in colonne di un blocco per la classe corrente: esatta se indicata, altrimenti in proporzione. */
-  function bentoSpan(it, cls) {
-    var cols = BENTO_COLS[cls], w;
+  function bentoSpan(it, cls, cols) {
+    var n = cols[cls], w;
     if (cls === "medium" && it.t) w = it.t;
     else if (cls === "compact" && it.m) w = it.m;
-    else w = Math.round(it.w * cols / BENTO_COLS.expanded);
-    return Math.max(1, Math.min(cols, w));
+    else w = Math.round(it.w * n / cols.expanded);
+    return Math.max(1, Math.min(n, w));
   }
 
   /** Impacchetta i blocchi nell'ordine, come grid-auto-flow: dense (ogni blocco nel primo posto libero). */
-  function packBento(items, cls) {
-    var cols = BENTO_COLS[cls], occ = [], rows = 0, placed = [];
+  function packBento(items, cls, cols) {
+    cols = cols || { expanded: 12, medium: 8, compact: 4 };
+    var n = cols[cls], occ = [], rows = 0, placed = [];
     function free(r, c, w, h) {
       for (var y = r; y < r + h; y++) for (var x = c; x < c + w; x++) if (occ[y] && occ[y][x]) return false;
       return true;
     }
     items.forEach(function (it) {
-      var w = bentoSpan(it, cls), h = it.h, r = 0, c, done = false;
+      var w = bentoSpan(it, cls, cols), h = it.h, r = 0, c, done = false;
       while (!done) {
-        for (c = 0; c + w <= cols; c++) {
+        for (c = 0; c + w <= n; c++) {
           if (free(r, c, w, h)) { done = true; break; }
         }
         if (!done) r++;
@@ -550,7 +575,7 @@
       rows = Math.max(rows, r + h);
       placed.push({ c: c, r: r, w: w, h: h });
     });
-    return { cols: cols, rows: rows, items: placed };
+    return { cols: n, rows: rows, items: placed };
   }
 
   /** Celle uguali in una griglia c x r dentro il riquadro dato. */
@@ -560,14 +585,19 @@
     return out;
   }
 
+  function pct(v, def, lo, hi) {
+    v = Number(v);
+    if (!isFinite(v)) v = def;
+    return Math.max(lo, Math.min(hi, v)) / 100;
+  }
+
   /** Layout web: restituisce rettangoli [x, y, w, h] nel riquadro locale W x H. */
   function webRects(v, p, abw, W, H, g) {
-    var cls = widthClass(abw), out = [];
+    var cls = widthClass(abw, p.bpM, p.bpE), out = [], rects;
     if (v === "bento") {
-      var items = parseBento(p.items);
-      if (items === null) return { error: "badItems" };
-      if (!items.length) return { error: "badItems" };
-      var pk = packBento(items, cls);
+      var items = parseBento(p.items), cols = bentoCols(p);
+      if (items === null || !items.length) return { error: "badItems" };
+      var pk = packBento(items, cls, cols);
       var cw = (W - (pk.cols - 1) * g) / pk.cols;
       if (cw <= 0) return { error: "tooNarrow" };
       var rh = p.wrow > 0 ? p.wrow : (H - (pk.rows - 1) * g) / pk.rows;
@@ -576,55 +606,94 @@
         var r = [b.c * (cw + g), b.r * (rh + g), b.w * cw + (b.w - 1) * g, b.h * rh + (b.h - 1) * g];
         if (r[1] + r[3] <= H + EPS) out.push(r); // con altezza fissa i blocchi che escono dal riquadro non si disegnano
       });
-      return { rects: out };
-    }
-    if (v === "autoFit") {
-      var minW = Math.max(1, p.wmin), c = Math.max(1, Math.min(24, Math.floor((W + g) / (minW + g)))), rows = Math.max(1, Math.round(p.wrows));
+      rects = out;
+    } else if (v === "masonry") {
+      var hs = parseHeights(p.mitems);
+      if (hs === null || !hs.length) return { error: "badItems" };
+      var mc = clampInt(p.mcols, 1, MAX_MASONRY_COLS, 4);
+      var nc = cls === "expanded" ? mc : cls === "medium" ? Math.max(1, Math.round(mc * 2 / 3)) : Math.max(1, Math.round(mc / 2));
+      var mw = (W - (nc - 1) * g) / nc;
+      if (mw <= 0) return { error: "tooNarrow" };
+      // ogni blocco va nella colonna più bassa (a parità, la prima da sinistra)
+      var cnt = [], units = [], j;
+      for (j = 0; j < nc; j++) { cnt.push(0); units.push(0); }
+      var slots = hs.map(function (hu) {
+        var k = 0;
+        for (j = 1; j < nc; j++) if (units[j] < units[k] - EPS) k = j;
+        var slot = { col: k, before: units[k], n: cnt[k], hu: hu };
+        units[k] += hu; cnt[k]++;
+        return slot;
+      });
+      var u = p.wrow > 0 ? p.wrow : Infinity;
+      if (!(p.wrow > 0)) for (j = 0; j < nc; j++) if (units[j] > 0) u = Math.min(u, (H - (cnt[j] - 1) * g) / units[j]);
+      if (!(u > 0) || !isFinite(u)) return { error: "tooNarrow" };
+      rects = [];
+      slots.forEach(function (sl) {
+        var r = [sl.col * (mw + g), sl.before * u + sl.n * g, mw, sl.hu * u];
+        if (r[1] + r[3] <= H + EPS) rects.push(r);
+      });
+    } else if (v === "autoFit") {
+      var minW = Math.max(1, p.wmin), c = Math.max(1, Math.min(24, Math.floor((W + g) / (minW + g)))), rows = clampInt(p.wrows, 1, 40, 3);
       if (c * rows > MAX_CELLS) return { error: "tooDense" };
       var rowH = p.wrow > 0 ? p.wrow : (H - (rows - 1) * g) / rows;
       if (rowH <= 0) return { error: "tooNarrow" };
       var all = evenCells(0, 0, W, rowH * rows + (rows - 1) * g, c, rows, g);
-      return { rects: all.filter(function (r) { return r[1] + r[3] <= H + EPS; }) };
-    }
-    if (v === "holyGrail") {
-      var hd = H / 10, ft = H / 12, sbw = W / 6, mid = H - hd - ft - 2 * g;
+      rects = all.filter(function (r) { return r[1] + r[3] <= H + EPS; });
+    } else if (v === "holyGrail") {
+      var hd = H * pct(p.whead, 10, 0, 60), ft = H * pct(p.wfoot, 8, 0, 60), sbw = W * pct(p.wside, 17, 0, 45);
+      var mid = H - hd - ft - 2 * g;
       if (cls === "expanded") out = [[0, 0, W, hd], [0, hd + g, sbw, mid], [sbw + g, hd + g, W - 2 * sbw - 2 * g, mid], [W - sbw, hd + g, sbw, mid], [0, H - ft, W, ft]];
       else if (cls === "medium") {
-        var asd = H / 8, mm = mid - asd - g, nw = W / 4;
+        var asd = H / 8, mm = mid - asd - g, nw = Math.min(W / 4, Math.max(sbw, W / 6));
         out = [[0, 0, W, hd], [0, hd + g, nw, mm], [nw + g, hd + g, W - nw - g, mm], [0, hd + g + mm + g, W, asd], [0, H - ft, W, ft]];
       } else {
-        var strip = H / 14, as2 = H / 9, mc = H - hd - ft - strip - as2 - 4 * g;
-        out = [[0, 0, W, hd], [0, hd + g, W, strip], [0, hd + strip + 2 * g, W, mc], [0, hd + strip + mc + 3 * g, W, as2], [0, H - ft, W, ft]];
+        var strip = H / 14, as2 = H / 9, mc2 = H - hd - ft - strip - as2 - 4 * g;
+        out = [[0, 0, W, hd], [0, hd + g, W, strip], [0, hd + strip + 2 * g, W, mc2], [0, hd + strip + mc2 + 3 * g, W, as2], [0, H - ft, W, ft]];
       }
-      return { rects: out };
-    }
-    if (v === "heroCards") {
-      var hero = H * 0.42, cc = cls === "expanded" ? 4 : cls === "medium" ? 2 : 1, cr = Math.ceil(4 / cc);
+      rects = out;
+    } else if (v === "heroCards") {
+      var hero = H * pct(p.whero, 42, 5, 90), n = clampInt(p.wcards, 1, 24, 4);
+      var cc = Math.min(n, cls === "expanded" ? 4 : cls === "medium" ? 2 : 1), cr = Math.ceil(n / cc);
       out = [[0, 0, W, hero]];
-      evenCells(0, hero + g, W, H - hero - g, cc, cr, g).slice(0, 4).forEach(function (r) { out.push(r); });
-      return { rects: out };
-    }
-    if (v === "split") {
-      if (cls === "compact") return { rects: [[0, 0, W, H * 0.6 - g / 2], [0, H * 0.6 + g / 2, W, H * 0.4 - g / 2]] };
-      var lw = (W - g) * 7 / 12;
-      return { rects: [[0, 0, lw, H], [lw + g, 0, W - lw - g, H]] };
-    }
-    if (v === "dashboard") {
-      var sw = cls === "expanded" ? W / 7 : cls === "medium" ? W / 14 : 0, x0 = sw ? sw + g : 0, cwid = W - x0, top = H / 12;
+      evenCells(0, hero + g, W, H - hero - g, cc, cr, g).slice(0, n).forEach(function (r) { out.push(r); });
+      rects = out;
+    } else if (v === "split") {
+      var left = clampInt(p.wsplit, 1, 11, 7);
+      if (cls === "compact") rects = [[0, 0, W, H * 0.6 - g / 2], [0, H * 0.6 + g / 2, W, H * 0.4 - g / 2]];
+      else {
+        var lw = (W - g) * left / 12;
+        rects = [[0, 0, lw, H], [lw + g, 0, W - lw - g, H]];
+      }
+    } else if (v === "dashboard") {
+      var nav = W * pct(p.wnav, 14, 3, 40), sw = cls === "expanded" ? nav : cls === "medium" ? Math.min(nav, W / 14) : 0;
+      var x0 = sw ? sw + g : 0, cwid = W - x0, top = H * pct(p.wtop, 8, 3, 30), nk = clampInt(p.wkpi, 1, 8, 4);
       if (sw) out.push([0, 0, sw, H]);
       out.push([x0, 0, cwid, top]);
-      var kc = cls === "compact" ? 2 : 4, kr = cls === "compact" ? 2 : 1, kh = cls === "compact" ? H / 5 : H / 7;
-      evenCells(x0, top + g, cwid, kh, kc, kr, g).forEach(function (r) { out.push(r); });
+      var kc = cls === "compact" ? Math.min(nk, 2) : nk, kr = Math.ceil(nk / kc), kh = (cls === "compact" ? H / 5 : H / 7) * (kr > 1 && cls !== "compact" ? kr : 1);
+      evenCells(x0, top + g, cwid, kh, kc, kr, g).slice(0, nk).forEach(function (r) { out.push(r); });
       var y1 = top + g + kh + g, rest = H - y1;
       if (cls === "compact") out.push([x0, y1, cwid, rest * 0.5 - g / 2], [x0, y1 + rest * 0.5 + g / 2, cwid, rest * 0.5 - g / 2]);
       else {
         var cwl = (cwid - g) * 2 / 3;
         out.push([x0, y1, cwl, rest * 0.5 - g / 2], [x0 + cwl + g, y1, cwid - cwl - g, rest * 0.5 - g / 2], [x0, y1 + rest * 0.5 + g / 2, cwid, rest * 0.5 - g / 2]);
       }
-      return { rects: out };
-    }
-    return { error: "unknownType" };
+      rects = out;
+    } else return { error: "unknownType" };
+    // una misura impossibile (per esempio header + footer oltre l'altezza) non deve produrre rettangoli rovesciati
+    for (var q = 0; q < rects.length; q++) if (!(rects[q][2] > EPS) || !(rects[q][3] > EPS)) return { error: "tooNarrow" };
+    return { rects: rects };
   }
+
+  /** Campi del pannello usati da ogni layout web (nomi dei parametri di comp). */
+  var WEB_FIELDS = {
+    bento: ["items", "wgap", "wrow", "bp", "cols"],
+    masonry: ["mitems", "mcols", "wgap", "wrow", "bp"],
+    autoFit: ["wmin", "wrows", "wgap", "wrow", "bp"],
+    holyGrail: ["whead", "wfoot", "wside", "wgap", "bp"],
+    heroCards: ["whero", "wcards", "wgap", "bp"],
+    split: ["wsplit", "wgap", "bp"],
+    dashboard: ["wnav", "wtop", "wkpi", "wgap", "bp"]
+  };
 
   function buildComp(p, ab, f) {
     var fr = frameOf(ab, p.margins, f);
@@ -884,7 +953,7 @@
         }
         break;
       }
-      case "bento": case "autoFit": case "holyGrail": case "heroCards": case "split": case "dashboard": {
+      case "bento": case "masonry": case "autoFit": case "holyGrail": case "heroCards": case "split": case "dashboard": {
         var wr = webRects(v, p, ab.w, W, H, Math.max(0, p.wgap) * f);
         if (wr.error) return { error: wr.error };
         wr.rects.forEach(function (q) {
@@ -1011,14 +1080,11 @@
     geom: ["isometric", "triangular", "hexagonal", "pentagon", "radial", "concentric", "symmetry"],
     studio: ["goldenCircles", "keylines", "vesica", "circlesTri", "circlesSquare", "androidIcon", "persp1", "persp2", "persp3"],
     layout: ["gutenberg", "zPattern", "fPattern", "listDetail", "supportingPane", "appShell"],
-    web: ["bento", "autoFit", "holyGrail", "heroCards", "split", "dashboard"],
+    web: ["bento", "masonry", "autoFit", "holyGrail", "heroCards", "split", "dashboard"],
     social: ["igStory", "igReel", "tiktok", "igProfile", "ytThumb", "ytBanner"],
     logo: ["logoTop", "logoTopX", "logoLeft", "logoLeftX", "typelogo", "logoTagline", "typeLines"]
   };
   var USES_SPACING = { isometric: 1, triangular: 1, hexagonal: 1, concentric: 1, circlesTri: 1, circlesSquare: 1 };
-  var USES_WEB = { bento: 1, autoFit: 1, holyGrail: 1, heroCards: 1, split: 1, dashboard: 1 };
-  var USES_ITEMS = { bento: 1 };
-  var USES_MIN = { autoFit: 1 };
   var USES_COUNT = { radial: 1, persp1: 1, persp2: 1, persp3: 1 };
   var USES_LOGO = { logoTop: 1, logoTopX: 1, logoLeft: 1, logoLeftX: 1, typelogo: 1, logoTagline: 1 };
 
@@ -1027,9 +1093,9 @@
     VARIANTS: VARIANTS,
     USES_SPACING: USES_SPACING,
     USES_COUNT: USES_COUNT,
-    USES_WEB: USES_WEB,
-    USES_ITEMS: USES_ITEMS,
-    USES_MIN: USES_MIN,
+    WEB_FIELDS: WEB_FIELDS,
+    bentoCols: bentoCols,
+    parseHeights: parseHeights,
     widthClass: widthClass,
     parseBento: parseBento,
     packBento: packBento,

@@ -226,6 +226,7 @@ button, input, select { font: inherit; color: inherit; }
 .target-row { margin-bottom: 12px; }
 
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 8px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px 8px; }
 
 .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; min-width: 0; }
 .grid2 .field { margin-bottom: 0; }

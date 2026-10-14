@@ -406,14 +406,17 @@
       var rule = el.dataset.show, ok;
       if (rule === "comp.spacing") ok = !!E.USES_SPACING[S.grid.comp.variant];
       else if (rule === "comp.logo") ok = !!E.USES_LOGO[S.grid.comp.variant];
-      else if (rule === "comp.web") ok = !!E.USES_WEB[S.grid.comp.variant];
-      else if (rule === "comp.items") ok = !!E.USES_ITEMS[S.grid.comp.variant];
-      else if (rule === "comp.min") ok = !!E.USES_MIN[S.grid.comp.variant];
+      else if (rule.indexOf("comp.f:") === 0) ok = (E.WEB_FIELDS[S.grid.comp.variant] || []).indexOf(rule.slice(7)) >= 0;
       else if (rule === "comp.count") ok = !!E.USES_COUNT[S.grid.comp.variant];
       else { var kv = rule.split("="); ok = String(getPath(S.grid, kv[0])) === kv[1]; }
       el.hidden = !ok;
     });
     $$("[data-toggle]").forEach(function (b) { b.setAttribute("aria-pressed", String(!!getPath(S.grid, b.dataset.toggle))); });
+    var bpSel = $("#bpPreset");
+    if (bpSel) {
+      var bpKey = S.grid.comp.bpM + "," + S.grid.comp.bpE;
+      bpSel.value = $$("option", bpSel).some(function (o) { return o.value === bpKey; }) ? bpKey : "custom";
+    }
     $$("[data-unit]").forEach(function (s) { s.textContent = S.grid.unit; });
     var hasRatios = !!String(S.grid.columns.ratios || "").trim();
     $$("[data-bind='columns.count']").forEach(function (inp) { inp.closest(".field").classList.toggle("muted", hasRatios); });
@@ -752,6 +755,12 @@
     });
 
     // azioni
+    $("#bpPreset").addEventListener("change", function (e) {
+      if (e.target.value === "custom") return;
+      var v = e.target.value.split(",");
+      S.grid.comp.bpM = parseInt(v[0], 10); S.grid.comp.bpE = parseInt(v[1], 10);
+      onGridChange(null);
+    });
     $("#mirrorPages").addEventListener("change", function (e) { S.set.mirrorPages = e.target.checked; persist(); liveGenerate(); });
     $("#live").addEventListener("change", function (e) { S.set.live = e.target.checked; persist(); if (S.set.live) generate(true); });
     $("#btnGenerate").addEventListener("click", generateNow);

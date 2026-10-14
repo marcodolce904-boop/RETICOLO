@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.0 (beta sperimentale)
+
+- Layout Web con **variabili modificabili**: soglie tablet e desktop (menu Material 3, Tailwind, Bootstrap o numeri liberi), colonne desktop, tablet e mobile del bento, gutter, altezza riga.
+- Proporzioni interne modificabili: header, footer e sidebar dell'holy grail, hero e numero di card, pannello sinistro dello schermo diviso, sidebar, barra superiore e numero di KPI della dashboard.
+- Nuovo layout **Masonry**: scrivi l'altezza di ogni blocco, ogni blocco va nella colonna più bassa (4 / 3 / 2 colonne secondo la larghezza).
+- Larghezze del bento fino a 24 colonne. Misure impossibili danno un errore chiaro.
+- 2 nuovi preset (81 in totale).
+
 ## 1.5.0 (beta sperimentale)
 
 - **Spirale aurea e rettangoli aurei**: il blocco aureo è sempre il più grande possibile dentro la pagina, con lo stesso orientamento, centrato. La spirale è un vero cerchio su qualsiasi formato (prima si schiacciava a ellisse su Story, A4 e altri).

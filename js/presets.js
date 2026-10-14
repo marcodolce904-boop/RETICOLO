@@ -29,6 +29,8 @@
     { cat: "web", name: { it: "Editoriale asimmetrica 2 : 1 : 1", en: "Asymmetric editorial 2 : 1 : 1" }, grid: { type: "columns", unit: "px", columns: cols(3, 32, 80, { ratios: "2 1 1" }) } },
     { cat: "web", name: { it: "Colonne Fibonacci 1 1 2 3 5", en: "Fibonacci columns 1 1 2 3 5" }, grid: { type: "columns", unit: "px", columns: cols(5, 16, 48, { ratios: "1 1 2 3 5" }) } },
     { cat: "web", name: { it: "Bento responsivo (12 / 8 / 4 colonne)", en: "Responsive bento (12 / 8 / 4 columns)" }, grid: { type: "comp", unit: "px", comp: { family: "web", variant: "bento", margins: m(24) } } },
+    { cat: "web", name: { it: "Bento responsivo, soglie Tailwind (768 / 1024)", en: "Responsive bento, Tailwind thresholds (768 / 1024)" }, grid: { type: "comp", unit: "px", comp: { family: "web", variant: "bento", bpM: 768, bpE: 1024, margins: m(24) } } },
+    { cat: "web", name: { it: "Masonry (4 / 3 / 2 colonne)", en: "Masonry (4 / 3 / 2 columns)" }, grid: { type: "comp", unit: "px", comp: { family: "web", variant: "masonry", margins: m(24) } } },
     { cat: "web", name: { it: "Card auto-fit (min 240)", en: "Auto-fit cards (min 240)" }, grid: { type: "comp", unit: "px", comp: { family: "web", variant: "autoFit", margins: m(24) } } },
     { cat: "web", name: { it: "Holy grail (header, 3 colonne, footer)", en: "Holy grail (header, 3 columns, footer)" }, grid: { type: "comp", unit: "px", comp: { family: "web", variant: "holyGrail", margins: m(24) } } },
     { cat: "web", name: { it: "Hero + 4 card", en: "Hero + 4 cards" }, grid: { type: "comp", unit: "px", comp: { family: "web", variant: "heroCards", margins: m(24) } } },
