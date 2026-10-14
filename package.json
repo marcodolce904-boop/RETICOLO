@@ -1,10 +1,11 @@
 {
   "name": "reticolo",
-  "version": "1.6.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Generatore di griglie per Illustrator, Photoshop e InDesign (estensione CEP)",
+  "description": "Generatore di griglie per Illustrator, Photoshop, InDesign (estensione CEP) e Figma (plugin)",
   "scripts": {
-    "test": "node --test \"tests/*.test.js\""
+    "test": "node --test \"tests/*.test.js\"",
+    "build:figma": "node tools/build-figma.js"
   },
   "license": "SEE LICENSE IN LICENSE"
 }

@@ -627,3 +627,6 @@ button, input, select { font: inherit; color: inherit; }
   .demo body { grid-template-columns: 1fr; grid-template-rows: 45vh 1fr; overflow: auto; }
   .demo .app { border-left: 0; border-top: 1px solid var(--line); }
 }
+
+/* Plugin Figma: le funzioni per la stampa su pagine affiancate non servono */
+.figma .only-print { display: none; }

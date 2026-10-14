@@ -8,8 +8,12 @@
 
   var cep = root.__adobe_cep__;
   var isCEP = !!cep;
+  // Plugin Figma: l'HTML del pannello (figma/ui.html) definisce RTC_FIGMA prima di caricare gli script
+  var figma = root.RTC_FIGMA || null;
+  var isFigma = !!figma && !isCEP;
 
   function hostEnv() {
+    if (isFigma) return { appName: "FIGMA", appSkinInfo: null };
     if (!isCEP) return { appName: "DEMO", appSkinInfo: null };
     try { return JSON.parse(cep.getHostEnvironment()); } catch (e) { return { appName: "ILST" }; }
   }
@@ -40,6 +44,7 @@
 
   /** Chiama Reticolo.<fn>(json) nell'ExtendScript dell'host e restituisce il JSON di ritorno. */
   function call(fn, payload) {
+    if (isFigma) return figmaCall(fn, payload);
     if (!isCEP) return Promise.resolve(Mock[fn](payload));
     var code = "(function(){try{if(typeof Reticolo==='undefined'){" + loaderCode() + "}" +
       "return Reticolo." + fn + "(" + jsxString(JSON.stringify(payload || {})) + ");}" +
@@ -63,12 +68,43 @@
 
   function on(type, fn) {
     if (isCEP) cep.addEventListener(type, fn);
+    else if (isFigma) (figmaListeners[type] = figmaListeners[type] || []).push(fn);
+  }
+
+  // ------------------------------------------------------------- Figma (messaggi verso code.js)
+
+  var figmaPending = {}, figmaListeners = {}, figmaSeq = 0;
+
+  function figmaPost(msg) { root.parent.postMessage({ pluginMessage: msg }, "*"); }
+
+  function figmaCall(fn, payload) {
+    return new Promise(function (resolve) {
+      var id = ++figmaSeq;
+      var timer = setTimeout(function () { delete figmaPending[id]; resolve({ error: "timeout" }); }, 60000);
+      figmaPending[id] = function (value) { clearTimeout(timer); resolve(value); };
+      figmaPost({ type: "call", id: id, fn: fn, payload: payload || {} });
+    });
+  }
+
+  if (isFigma) {
+    root.addEventListener("message", function (e) {
+      var m = e.data && e.data.pluginMessage;
+      if (!m) return;
+      if (m.type === "result" && figmaPending[m.id]) {
+        var done = figmaPending[m.id];
+        delete figmaPending[m.id];
+        done(m.value);
+      } else if (m.type === "event") {
+        (figmaListeners[m.name] || []).forEach(function (fn) { fn(); });
+      }
+    });
   }
 
   // ------------------------------------------------------------- file system
 
   var fs = {
     read: function (path) {
+      if (isFigma) return Object.prototype.hasOwnProperty.call(figma.store, path) ? figma.store[path] : null;
       if (isCEP && root.cep && root.cep.fs) {
         var r = root.cep.fs.readFile(path, root.cep.encoding.UTF8);
         return r.err === 0 ? r.data : null;
@@ -76,6 +112,12 @@
       try { return root.localStorage.getItem("rtc:" + path); } catch (e) { return null; }
     },
     write: function (path, data) {
+      if (isFigma) {
+        // niente localStorage nell'iframe di Figma: l'archivio sta in code.js (clientStorage)
+        figma.store[path] = data;
+        figmaPost({ type: "store", path: path, data: data });
+        return true;
+      }
       if (isCEP && root.cep && root.cep.fs) {
         var dir = path.replace(/\/[^/]*$/, "");
         root.cep.fs.makedir(dir);
@@ -217,10 +259,12 @@
     };
   })();
 
-  root.RTC_MOCK = isCEP ? null : Mock;
+  root.RTC_MOCK = isCEP || isFigma ? null : Mock;
 
   root.RTC_HOST = {
     isCEP: isCEP,
+    isFigma: isFigma,
+    hosted: isCEP || isFigma,
     env: hostEnv,
     systemPath: systemPath,
     call: call,

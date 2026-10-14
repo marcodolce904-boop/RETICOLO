@@ -97,6 +97,12 @@
   function applyTheme() {
     var root = document.documentElement;
     var env = H.env();
+    if (H.isFigma) {
+      // themeColors di Figma aggiunge figma-light / figma-dark all'elemento radice
+      root.classList.add("figma");
+      root.classList.toggle("theme-light", root.classList.contains("figma-light"));
+      return;
+    }
     if (!H.isCEP || !env.appSkinInfo) { root.classList.add("demo"); return; }
     var c = env.appSkinInfo.panelBackgroundColor.color;
     var lum = (0.299 * c.red + 0.587 * c.green + 0.114 * c.blue) / 255;
@@ -123,6 +129,7 @@
   function refreshDoc() {
     return H.call("info").then(function (info) {
       S.doc = info && info.doc ? info : null;
+      S.figmaEmpty = !!(info && !info.doc && info.app === "FIGMA");
       if (S.doc) refreshLayer();
       renderTargets();
       renderMain();
@@ -167,11 +174,62 @@
    */
   function isLeftPage(ab) {
     if (ab.obj || !S.set.mirrorPages) return false;
-    var side = ab.side || (S.doc.app === "IDSN" ? "S" : ab.i % 2 === 1 ? "L" : "R");
+    var side = ab.side || (S.doc.app === "IDSN" || S.doc.app === "FIGMA" ? "S" : ab.i % 2 === 1 ? "L" : "R");
     return side === "L";
   }
 
   function isObjectTarget() { return S.set.target === "sel" || /^o:/.test(S.set.target); }
+
+  /**
+   * Layout grid nativi di Figma (colonne, righe, griglia quadrata) per le griglie che hanno un equivalente esatto.
+   * Restituisce null per le altre (rapporti, composizioni, punti...): si disegnano come linee.
+   * Le righe di baseline usano il trucco consueto: sezioni alte 1 con gutter = passo - 1.
+   */
+  function figmaGrids(grid, ab, c) {
+    var f = E.unitFactor(grid.unit, c), p = grid[grid.type], out = [], m = p.margins || {};
+    function cols(n, gutter, l, r) {
+      var span = ab.w - l - r, sec = (span - (n - 1) * gutter) / n;
+      if (!(sec > 0)) return null;
+      return Math.abs(l - r) < 0.01 ? { pattern: "COLUMNS", alignment: "STRETCH", count: n, gutterSize: gutter, offset: l, a: 0.1 }
+        : { pattern: "COLUMNS", alignment: "MIN", count: n, gutterSize: gutter, sectionSize: sec, offset: l, a: 0.1 };
+    }
+    function rows(n, gutter, t, b) {
+      var span = ab.h - t - b, sec = (span - (n - 1) * gutter) / n;
+      if (!(sec > 0)) return null;
+      return Math.abs(t - b) < 0.01 ? { pattern: "ROWS", alignment: "STRETCH", count: n, gutterSize: gutter, offset: t, a: 0.1 }
+        : { pattern: "ROWS", alignment: "MIN", count: n, gutterSize: gutter, sectionSize: sec, offset: t, a: 0.1 };
+    }
+    function baseline(step, dir) {
+      return step > 1 ? { pattern: dir, alignment: "MIN", count: Infinity, gutterSize: step - 1, sectionSize: 1, offset: 0, a: 0.6 } : null;
+    }
+    var g1;
+    if (grid.type === "columns") {
+      if (String(p.ratios || "").trim()) return null;
+      var n = Math.round(p.count), gt = p.gutter * f;
+      if (p.maxWidth > 0) {
+        var sec = (p.maxWidth * f - (n - 1) * gt) / n;
+        if (!(sec > 0)) return null;
+        out.push({ pattern: "COLUMNS", alignment: "CENTER", count: n, gutterSize: gt, sectionSize: sec, offset: 0, a: 0.1 });
+      } else {
+        g1 = cols(n, gt, m.l * f, m.r * f);
+        if (!g1) return null;
+        out.push(g1);
+      }
+      if (p.lead > 0) { g1 = baseline(p.lead * f, "ROWS"); if (!g1) return null; out.push(g1); }
+    } else if (grid.type === "modular") {
+      if (p.sizing !== "fit" || p.lead > 0) return null;
+      var gc = cols(Math.round(p.cols), p.gx * f, m.l * f, m.r * f), gr = rows(Math.round(p.rows), p.gy * f, m.t * f, m.b * f);
+      if (!gc || !gr) return null;
+      out.push(gc, gr);
+    } else if (grid.type === "baseline") {
+      var any = m.t || m.r || m.b || m.l || p.offset || p.boldEvery;
+      if (any || p.dir === "dots") return null;
+      var st = p.spacing * f;
+      if (p.dir === "both") { if (!(st > 0)) return null; out.push({ pattern: "GRID", alignment: "MIN", sectionSize: st, a: 0.4 }); }
+      else { g1 = baseline(st, p.dir === "v" ? "COLUMNS" : "ROWS"); if (!g1) return null; out.push(g1); }
+    } else return null;
+    return { figma: out };
+  }
 
   function buildPayload() {
     var c = ctx(), mode = S.set.render, targets = [], err = null;
@@ -188,7 +246,11 @@
           t: p.margins.t * f, r: (left ? p.margins.l : p.margins.r) * f, b: p.margins.b * f, l: (left ? p.margins.r : p.margins.l) * f
         };
         prims = [];
-      } else if (mode === "guides") {
+      } else if (c.app === "FIGMA" && !ab.obj && mode === "guides") {
+        // Figma non permette di creare guide: dove possibile si usano i layout grid del frame, altrimenti linee
+        native = figmaGrids(S.grid, ab, c);
+        if (native) prims = [];
+      } else if (mode === "guides" && c.app !== "FIGMA") {
         var g = E.toGuides(prims);
         guides = { v: g.v, h: g.h };
         prims = g.rest;
@@ -205,7 +267,7 @@
   }
 
   function generate(silent) {
-    if (!S.doc) { if (!silent) toast(t("noDoc"), true); return; }
+    if (!S.doc) { if (!silent) toast(t(S.figmaEmpty ? "noFrames" : "noDoc"), true); return; }
     if (S.busy) { S.pending = S.pending === "explicit" || !silent ? "explicit" : "live"; return; }
     var b = buildPayload();
     if (b.error) { if (!silent) toast(t("err." + b.error), true); return; }
@@ -218,7 +280,7 @@
       S.busy = false;
       if (res && res.error === "objectGone") toast(t("err.objectGone"), true);
       else if (res && res.error) toast(t("hostError", { msg: res.error }), true);
-      else if (!silent) toast(t("done", { n: b.payload.targets.length, what: isObjectTarget() ? t(b.payload.targets.length === 1 ? "what.obj1" : "what.obj") : S.doc.app === "IDSN" ? t("what.pages") : t("what.ab") }));
+      else if (!silent) toast(t("done", { n: b.payload.targets.length, what: isObjectTarget() ? t(b.payload.targets.length === 1 ? "what.obj1" : "what.obj") : S.doc.app === "IDSN" ? t("what.pages") : S.doc.app === "FIGMA" ? t("what.frames") : t("what.ab") }));
       S.layer.locked = !!S.set.lockAfter;
       S.layer.visible = true;
       renderLayerButtons();
@@ -239,7 +301,7 @@
 
   /** Genera dopo aver riletto il documento: l'artboard attivo puo' essere cambiato senza eventi. */
   function generateNow() {
-    if (!H.isCEP) { generate(false); return; }
+    if (!H.hosted) { generate(false); return; }
     refreshDoc().then(function () { generate(false); });
   }
 
@@ -296,12 +358,12 @@
     if (app === "PHXS" && abs.length === 1 && abs[0].i === -1) {
       opts.push(["all", t("target.canvas")]);
     } else {
-      opts.push(["all", app === "IDSN" ? t("target.allPages") : t("target.all")]);
-      opts.push(["active", app === "IDSN" ? t("target.activePage") : t("target.active")]);
+      opts.push(["all", app === "IDSN" ? t("target.allPages") : app === "FIGMA" ? t("target.allFrames") : t("target.all")]);
+      opts.push(["active", app === "IDSN" ? t("target.activePage") : app === "FIGMA" ? t("target.activeFrame") : t("target.active")]);
       abs.forEach(function (a) { opts.push(["i:" + a.i, a.name]); });
     }
     // oggetti chiusi: la selezione corrente e quelli del livello attivo
-    var unit = app === "PHXS" ? "px" : "pt", objOpts = [];
+    var unit = app === "PHXS" || app === "FIGMA" ? "px" : "pt", objOpts = [];
     // gli oggetti senza nome vengono numerati per tipo: "Tracciato 1", "Ellisse 2"...
     var counters = {}, names = {};
     (S.doc.objects || []).forEach(function (o) {
@@ -321,7 +383,7 @@
       return '<option value="' + esc(o[0]) + '"' + (o[0] === S.set.target ? " selected" : "") + ">" + esc(o[1]) + "</option>";
     };
     var groupLabel = S.doc.layerName ? t("target.layerObjects", { name: S.doc.layerName }) : t("target.objects");
-    sel.innerHTML = '<optgroup label="' + esc(app === "IDSN" ? t("target.pagesGroup") : t("target.abGroup")) + '">' + opts.map(optHTML).join("") + "</optgroup>" +
+    sel.innerHTML = '<optgroup label="' + esc(app === "IDSN" ? t("target.pagesGroup") : app === "FIGMA" ? t("target.framesGroup") : t("target.abGroup")) + '">' + opts.map(optHTML).join("") + "</optgroup>" +
       '<optgroup label="' + esc(groupLabel) + '">' + objOpts.map(optHTML).join("") +
       (objOpts.length === 1 ? '<option disabled>' + esc(t("target.noObjects")) + "</option>" : "") + "</optgroup>";
   }
@@ -432,6 +494,7 @@
 
     $("#live").checked = !!S.set.live;
     $("#noDoc").hidden = !!S.doc;
+    $("#noDoc").lastElementChild.textContent = t(S.figmaEmpty ? "noFrames" : "noDoc");
     $("#btnGenerate").disabled = $("#btnClear").disabled = !S.doc;
     readout();
   }
@@ -554,7 +617,7 @@
     } else {
       el.innerHTML = list.map(cardHTML).join("");
     }
-    $("#libPath").textContent = H.isCEP ? LIBRARY_PATH : "localStorage (anteprima)";
+    $("#libPath").textContent = H.isCEP ? LIBRARY_PATH : H.isFigma ? t("lib.figmaPath") : "localStorage (anteprima)";
     var r = $("[data-rename]");
     if (r) { r.focus(); r.select(); }
   }
@@ -884,7 +947,7 @@
     H.on("com.adobe.csxs.events.ThemeColorChanged", applyTheme);
     window.addEventListener("rtc-mock-change", function () { refreshDoc(); });
     window.addEventListener("focus", function () {
-      if (!H.isCEP) return;
+      if (!H.hosted) return;
       refreshDoc();
       lib.sync();
       renderPresets();
@@ -901,13 +964,17 @@
       if (el.children.length || el.textContent.trim()) el.insertAdjacentHTML("afterbegin", html);
       else el.innerHTML = html;
     });
+    if (H.isFigma) {
+      $('option[value="guides"]').dataset.i18n = "set.figmaGrid";
+      $("#guidesHelp").dataset.i18n = "set.figmaHelp";
+    }
     I.apply();
     bind();
     renderPresets();
     renderTargets();
     renderMain();
     renderLayerButtons();
-    if (!H.isCEP) document.title = "Reticolo - " + t("demo");
+    if (!H.hosted) document.title = "Reticolo - " + t("demo");
     if (lib.recovered) toast(t("lib.recovered"), true);
     refreshDoc();
   }

@@ -1,8 +1,8 @@
 # Reticolo
 
-![status](https://img.shields.io/badge/status-experimental%20beta-orange) ![version](https://img.shields.io/badge/version-1.6.0--beta-blue) ![apps](https://img.shields.io/badge/Illustrator%20%C2%B7%20Photoshop%20%C2%B7%20InDesign-grey)
+![status](https://img.shields.io/badge/status-experimental%20beta-orange) ![version](https://img.shields.io/badge/version-2.0.0--beta-blue) ![apps](https://img.shields.io/badge/Illustrator%20%C2%B7%20Photoshop%20%C2%B7%20InDesign%20%C2%B7%20Figma-grey)
 
-**Layout grids for Adobe Illustrator, Photoshop and InDesign, in one panel.**
+**Layout grids for Adobe Illustrator, Photoshop, InDesign and Figma, in one panel.**
 
 Reticolo builds precise grids on your artboards and pages in a click: columns, modular grids, baselines and classic composition systems such as the golden spiral, dynamic symmetry and rabatment. It also covers practical tools like icon keylines, perspective guides and social media safe zones. Every grid can be saved to a personal library, tagged, and shared as a simple JSON file. The same library works in all three apps.
 
@@ -24,6 +24,7 @@ It is built for graphic designers, editorial and print designers, UI and web des
 - Logo layouts built in X units: logo on top, logo on the left, logotype, tagline lockup, type lines, with exact clear space
 - Output as strokes, filled cells or native guides, on a dedicated layer, with one-step undo in Photoshop and InDesign
 - Grid library with search, tags, favorites, import and export, plus 81 built-in presets
+- **Figma plugin** (beta): the same panel and engine, with native Figma layout grids where possible, see `figma/README.md`
 - Interface in English and Italian, follows the light or dark theme of the app
 
 ---
@@ -51,6 +52,8 @@ Per rimuoverlo usa `uninstall-windows.bat` (la libreria resta salvata). Le novit
 > **Licenza:** uso gratuito, anche professionale e per clienti. Non è consentito ripubblicarlo, venderlo o distribuirne versioni modificate. Dettagli in `LICENSE`.
 
 Versioni supportate: Illustrator CC 2018+, Photoshop 2021+, InDesign 2021+.
+
+**Figma:** il plugin è nella cartella `figma/`. Si importa da Figma desktop con *Plugins > Development > Import plugin from manifest...* e `figma/manifest.json`. Istruzioni, funzioni e limiti in `figma/README.md`.
 
 ## Uso
 
@@ -133,10 +136,11 @@ Formato del file (lo stesso per import ed export):
   js/host.js            ponte verso l'app + host simulato per il browser
   js/main.js            interfaccia
   host/*.jsx            disegno in Illustrator / Photoshop / InDesign (ExtendScript ES3)
+  figma/                plugin Figma: code.js (sandbox), ui.html (generato), manifest.json
   tests/                test (motore, libreria, script host su DOM simulato)
 ```
 
-- `npm test` esegue i test (Node 22+). Su GitHub partono da soli a ogni push (`.github/workflows/test.yml`).
+- `npm test` esegue i test (Node 22+). Dopo modifiche al pannello, `npm run build:figma` rigenera `figma/ui.html`. Su GitHub partono da soli a ogni push (`.github/workflows/test.yml`).
 - `CLAUDE.md` riassume le regole del codice (ES3 negli script host, limiti di densità, testi IT/EN).
 - Aprendo `index.html` nel browser il pannello gira in **modalità anteprima**, con tre artboard simulati.
 - Debug dentro l'app: con l'app aperta vai su `http://localhost:8088` (Illustrator), `8089` (Photoshop) o `8090` (InDesign) in Chrome.

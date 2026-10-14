@@ -12,6 +12,12 @@ Estensione CEP (pannello HTML + ExtendScript) per Illustrator, Photoshop e InDes
 - Testi visibili in italiano e inglese, senza trattini lunghi.
 - Licenza: Reticolo Free Use License (`LICENSE`). Uso gratuito anche professionale, niente redistribuzione o vendita. Non è open source.
 
+## Figma
+
+- `figma/code.js` (sandbox) legge i frame e disegna, senza geometria. `figma/ui.html` è **generato**: dopo ogni modifica a `index.html`, `css/` o `js/` esegui `npm run build:figma` (il test `figma-host` fallisce se il file è vecchio).
+- Il pannello parla con `code.js` per messaggi (`call`, `store`, `ready`, `init`, `result`, `event`) tramite `js/host.js`. Niente `localStorage` nell'iframe di Figma: l'archivio passa da `clientStorage`.
+- App `FIGMA`: artboard = frame, `native.figma` = layout grid nativi (solo se esiste un equivalente esatto, altrimenti linee).
+
 ## Comandi
 
 - `npm test`: motore, libreria e script host su DOM simulato (Node 22+).

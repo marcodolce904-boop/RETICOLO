@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0 (beta sperimentale)
+
+- **Plugin per Figma.** Stesso pannello e stesso motore delle app Adobe, nella cartella `figma/` (importa `figma/manifest.json` da Figma desktop). Istruzioni e limiti in `figma/README.md`.
+- I frame sono gli artboard. Le griglie sono SVG in un livello `Reticolo` del frame, con occhio, lucchetto e Cancella come nelle altre app.
+- Modalità **Layout grid di Figma**: colonne, griglie modulari e baseline semplici diventano layout grid nativi del frame; le altre griglie restano linee (Figma non permette di creare guide).
+- Griglie dentro oggetti chiusi: dentro i frame e i componenti, ritagliate con una maschera nelle forme.
+- Libreria e impostazioni nell'archivio locale del plugin; importazione ed esportazione `.json` compatibili con le app Adobe.
+- `tools/build-figma.js` genera `figma/ui.html` dal pannello; un test controlla che sia aggiornato.
+- Novità interne: ponte messaggi nel pannello (`js/host.js`), test di `figma/code.js` con un'API Figma simulata.
+
 ## 1.6.0 (beta sperimentale)
 
 - Layout Web con **variabili modificabili**: soglie tablet e desktop (menu Material 3, Tailwind, Bootstrap o numeri liberi), colonne desktop, tablet e mobile del bento, gutter, altezza riga.
