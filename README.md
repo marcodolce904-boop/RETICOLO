@@ -21,6 +21,8 @@ It is built for graphic, editorial and print designers, UI and web designers, il
 
 > **Experimental beta.** Reticolo is under active development and has been tested on a limited number of setups. Features, file formats and behaviour may change between versions, and some combinations of app version and document may not work as expected. Save your work before generating grids on important files, and please report any problem by opening an issue.
 
+**Video:** [15 s presentation](docs/media/reticolo-2.0-update.mp4) · [20 s spot](docs/media/reticolo-2.0-spot-20s.mp4) (original music, see `docs/media/README.md`).
+
 **Free to use**, also for professional and client work. Not open source: redistribution and resale are not allowed (see `LICENSE`).
 
 **Highlights**
@@ -151,7 +153,9 @@ Formato del file (lo stesso per import ed export):
   js/host.js            ponte verso l'app + host simulato per il browser
   js/main.js            interfaccia
   host/*.jsx            disegno in Illustrator / Photoshop / InDesign (ExtendScript ES3)
-  figma/                plugin Figma: code.js (sandbox), ui.html (generato), manifest.json
+  figma/                plugin Figma: code.js (sandbox), ui.html (generato), manifest.json, publish/ (kit Community)
+  installer/, tools/    installer Windows (NSIS) e macOS, script di build
+  docs/media/           logo, video di presentazione, anteprima social
   tests/                test (motore, libreria, script host su DOM simulato)
 ```
 
