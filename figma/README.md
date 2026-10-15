@@ -4,7 +4,13 @@ Lo stesso pannello e lo stesso motore di Reticolo per Illustrator, Photoshop e I
 Questo plugin non è stato ancora provato in Figma da un utente: è testato con un'API Figma simulata e con il pannello nel browser.
 Segnala ogni problema aprendo una issue.
 
-## Installazione (Figma desktop)
+## Installazione veloce (Windows)
+
+Doppio clic su **`install-figma-windows.bat`** (nel repository, o accanto ai file se hai lo zip del plugin). Copia il plugin in `%APPDATA%\Reticolo\figma-plugin`, mette il percorso del manifest negli appunti e apre Figma. Resta un solo passaggio, **la prima volta**: *Plugins > Development > Import plugin from manifest...*, incolla con Ctrl+V e Invio. Figma non permette di importare un plugin in sviluppo in modo automatico. Dalla seconda volta Reticolo è già nel menu *Plugins > Development*, e per aggiornarlo basta rilanciare il file `.bat`.
+
+Per l'installazione con un clic ("Install") serve la pubblicazione nella Community di Figma: kit pronto in `figma/publish/`.
+
+## Installazione manuale (Figma desktop)
 
 1. Scarica il repository (**Code > Download ZIP**) e estrai lo zip.
 2. In Figma: **Plugins > Development > Import plugin from manifest...**
