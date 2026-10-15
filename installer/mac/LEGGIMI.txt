@@ -1,0 +1,13 @@
+RETICOLO PER macOS (beta sperimentale)
+
+1. Estrai tutto lo zip (non spostare l'installer fuori dalla cartella: la cartella "payload" deve restargli accanto).
+2. Doppio clic su Installa-Reticolo.command.
+   Se macOS lo blocca perche' non e' firmato: tasto destro > Apri > Apri.
+   Oppure da Terminale:  xattr -dr com.apple.quarantine <cartella estratta>
+3. Scegli Illustrator, Photoshop, InDesign e/o Figma (selezione multipla con Cmd o Maiusc).
+4. Adobe: chiudi e riapri le app, poi Finestra > Estensioni > Reticolo.
+   Figma: il percorso del manifest e' negli appunti; la prima volta, in Figma:
+   Plugins > Development > Import plugin from manifest... > Cmd+Maiusc+G > incolla > Invio.
+
+Su macOS Reticolo e' ancora poco provato: se qualcosa non va, apri una issue su
+https://github.com/marcodolce904-boop/RETICOLO

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.1 (beta sperimentale)
+
+- **Installer unico** per Windows (`.exe`, NSIS) e macOS (`.zip` con `.command`): si scelgono Illustrator, Photoshop, InDesign e Figma con selezione multipla. Il manifest dell'estensione Adobe elenca solo le app scelte. Installazione silenziosa con `/COMPONENTS=`. Disinstallatore che conserva la libreria.
+- `tools/build-installers.js` costruisce gli installer in `dist/`. Dettagli e limiti (non firmati, macOS non provato su un Mac) in `installer/README.md`.
+
 ## 2.0.0 (beta sperimentale)
 
 - **Plugin per Figma.** Stesso pannello e stesso motore delle app Adobe, nella cartella `figma/` (importa `figma/manifest.json` da Figma desktop). Istruzioni e limiti in `figma/README.md`.

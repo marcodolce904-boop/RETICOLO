@@ -9,7 +9,7 @@
 
 <p align="center">
   <img alt="status" src="https://img.shields.io/badge/status-experimental%20beta-orange">
-  <img alt="version" src="https://img.shields.io/badge/version-2.0.0--beta-blue">
+  <img alt="version" src="https://img.shields.io/badge/version-2.0.1--beta-blue">
   <img alt="apps" src="https://img.shields.io/badge/Illustrator%20%C2%B7%20Photoshop%20%C2%B7%20InDesign%20%C2%B7%20Figma-grey">
 </p>
 
@@ -46,7 +46,11 @@ Generatore di griglie per **Illustrator, Photoshop e InDesign**. È un unico pan
 colonne, griglie modulari, baseline e griglie di composizione (spirale aurea, simmetria dinamica, rabattimento, isometrica…),
 più una **libreria** di griglie da salvare, importare ed esportare.
 
-## Installazione su Windows
+## Installazione veloce (Windows e macOS)
+
+Un solo installer con le caselle da spuntare: **Illustrator, Photoshop, InDesign e Figma**. Windows: `Reticolo-Setup-<versione>.exe`. macOS: `Reticolo-Mac-<versione>.zip` (doppio clic su `Installa-Reticolo.command`). I file si costruiscono con `node tools/build-installers.js`; dettagli, limiti e avvisi di sicurezza in `installer/README.md`.
+
+## Installazione su Windows (manuale)
 
 1. Scarica il plugin: su GitHub **Code > Download ZIP**, poi estrai lo zip (oppure `git clone` del repository).
 2. Nella cartella estratta, doppio clic su **`install-windows.bat`**.
