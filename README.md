@@ -50,7 +50,7 @@ più una **libreria** di griglie da salvare, importare ed esportare.
 
 ## Installazione veloce (Windows e macOS)
 
-Un solo installer con le caselle da spuntare: **Illustrator, Photoshop, InDesign e Figma**. Windows: `Reticolo-Setup-<versione>.exe`. macOS: `Reticolo-Mac-<versione>.zip` (doppio clic su `Installa-Reticolo.command`). I file si costruiscono con `node tools/build-installers.js`; dettagli, limiti e avvisi di sicurezza in `installer/README.md`.
+Un solo installer con le caselle da spuntare: **Illustrator, Photoshop, InDesign e Figma**. Windows: `Reticolo-Setup-<versione>.exe`. macOS: `Reticolo-Mac-<versione>.zip` (doppio clic su `Installa-Reticolo.command`). **Scarica da qui:** [`downloads/Reticolo-Setup-2.0.1.exe`](downloads/Reticolo-Setup-2.0.1.exe) (Windows; se il browser blocca l'`.exe`, usa lo zip [`Reticolo-Setup-2.0.1-windows.zip`](downloads/Reticolo-Setup-2.0.1-windows.zip)) e [`downloads/Reticolo-Mac-2.0.1.zip`](downloads/Reticolo-Mac-2.0.1.zip) (macOS). Su GitHub apri il file e premi *Download raw file*. I file si costruiscono con `node tools/build-installers.js`; dettagli, limiti e avvisi di sicurezza in `installer/README.md`.
 
 ## Installazione su Windows (manuale)
 
