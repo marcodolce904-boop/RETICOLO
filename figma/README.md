@@ -1,5 +1,7 @@
 # Reticolo per Figma (beta sperimentale)
 
+> Istruzioni passo passo per installare e importare il plugin: [`docs/INSTALLAZIONE.md`](../docs/INSTALLAZIONE.md), sezione 5. Reticolo non compare nel menu normale dei plugin: sta solo sotto **Plugins > Development**, dopo l'importazione.
+
 Lo stesso pannello e lo stesso motore di Reticolo per Illustrator, Photoshop e InDesign, dentro Figma.
 Questo plugin non è stato ancora provato in Figma da un utente: è testato con un'API Figma simulata e con il pannello nel browser.
 Segnala ogni problema aprendo una issue.

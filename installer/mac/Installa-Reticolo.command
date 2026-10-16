@@ -64,7 +64,15 @@ if [ $((AI + PS + ID)) -gt 0 ]; then
   MSG="$MSG\n\nChiudi e riapri le app Adobe, poi apri il pannello da Finestra > Estensioni > Reticolo (Photoshop: Estensioni (legacy))."
 fi
 if [ $FIG -eq 1 ]; then
-  MSG="$MSG\n\nFigma: il percorso del manifest e' negli appunti. In Figma (app desktop, file Design aperto), solo la prima volta:\n1. Plugins > Development > Import plugin from manifest...\n2. Premi Cmd+Maiusc+G, incolla con Cmd+V, premi Invio e poi Apri\n3. Avvia: Plugins > Development > Reticolo"
+  MSG="$MSG
+
+FIGMA, da fare UNA volta sola. Il percorso del manifest e' negli appunti.
+Nell'app Figma per desktop, con un file Design aperto:
+1. Menu Figma (icona in alto a sinistra) > Plugins > Development > Import plugin from manifest...
+2. Nella finestra premi Cmd+Maiusc+G, incolla con Cmd+V, premi Invio e poi Apri
+3. Avvia da Plugins > Development > Reticolo
+
+Reticolo non e' nel menu normale dei plugin: sta solo sotto Plugins > Development."
   open -a Figma >/dev/null 2>&1 || open "figma://" >/dev/null 2>&1
 fi
 osascript -e "display dialog \"$(printf "%b" "$MSG" | sed 's/"/\\"/g')\" buttons {\"OK\"} default button 1 with title \"Reticolo\"" >/dev/null 2>&1

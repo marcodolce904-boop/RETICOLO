@@ -33,10 +33,12 @@ start "" "figma://" >nul 2>&1
 
 echo  Fatto: i file sono copiati e il percorso del manifest e' negli appunti.
 echo.
-echo  SOLO LA PRIMA VOLTA, in Figma (app desktop, file Design aperto):
-echo    1. Plugins ^> Development ^> Import plugin from manifest...
-echo    2. Incolla il percorso con Ctrl+V e premi Invio
-echo    3. Poi avvia: Plugins ^> Development ^> Reticolo
+echo  SOLO LA PRIMA VOLTA, nell'app Figma per desktop con un file Design aperto:
+echo    1. Menu Figma (icona in alto a sinistra) ^> Plugins ^> Development ^> Import plugin from manifest...
+echo    2. Nella finestra incolla con Ctrl+V e premi Invio
+echo    3. Avvia da Plugins ^> Development ^> Reticolo
+echo.
+echo  Reticolo non e' nel menu normale dei plugin: sta solo sotto Plugins ^> Development.
 echo.
 echo  Dalla seconda volta Reticolo e' gia' nel menu Plugins ^> Development.
 echo  Per aggiornarlo basta rilanciare questo file: Figma usa i nuovi file

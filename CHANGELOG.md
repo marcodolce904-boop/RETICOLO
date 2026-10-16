@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.2 (beta sperimentale)
+
+- **Istruzioni di installazione riscritte**: nuova guida passo passo `docs/INSTALLAZIONE.md` (italiano e inglese) con i percorsi esatti dei menu, i percorsi dei file, gli avvisi di sicurezza e la sezione sull'importazione in Figma (una sola volta, solo sotto *Plugins > Development*). Gli installer mostrano gli stessi passi alla fine.
+
 ## 2.0.1 (beta sperimentale)
 
 - **Installer unico** per Windows (`.exe`, NSIS) e macOS (`.zip` con `.command`): si scelgono Illustrator, Photoshop, InDesign e Figma con selezione multipla. Il manifest dell'estensione Adobe elenca solo le app scelte. Installazione silenziosa con `/COMPONENTS=`. Disinstallatore che conserva la libreria.

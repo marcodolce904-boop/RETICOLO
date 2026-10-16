@@ -1,5 +1,7 @@
 # Installer di Reticolo
 
+> Guida passo passo per l'utente: [`docs/INSTALLAZIONE.md`](../docs/INSTALLAZIONE.md).
+
 Un solo installer per scegliere dove mettere Reticolo: **Illustrator, Photoshop, InDesign e Figma**, anche tutti insieme.
 
 | Sistema | File | Cosa fa |
@@ -13,7 +15,7 @@ Un solo installer per scegliere dove mettere Reticolo: **Illustrator, Photoshop,
 
 ## Installazione silenziosa (Windows)
 ```
-Reticolo-Setup-2.0.1.exe /S /COMPONENTS=illustrator,photoshop,indesign,figma
+Reticolo-Setup-2.0.2.exe /S /COMPONENTS=illustrator,photoshop,indesign,figma
 ```
 Senza `/COMPONENTS` si installa tutto.
 

@@ -6,8 +6,11 @@ RETICOLO PER macOS (beta sperimentale)
    Oppure da Terminale:  xattr -dr com.apple.quarantine <cartella estratta>
 3. Scegli Illustrator, Photoshop, InDesign e/o Figma (selezione multipla con Cmd o Maiusc).
 4. Adobe: chiudi e riapri le app, poi Finestra > Estensioni > Reticolo.
-   Figma: il percorso del manifest e' negli appunti; la prima volta, in Figma:
-   Plugins > Development > Import plugin from manifest... > Cmd+Maiusc+G > incolla > Invio.
+   Figma (UNA volta sola, app desktop, file Design aperto): menu Figma (icona in alto a sinistra) >
+   Plugins > Development > Import plugin from manifest... > Cmd+Maiusc+G > incolla (Cmd+V) > Invio > Apri.
+   Poi: Plugins > Development > Reticolo. Non e' nel menu normale dei plugin.
+
+Guida completa: docs/INSTALLAZIONE.md nel repository.
 
 Su macOS Reticolo e' ancora poco provato: se qualcosa non va, apri una issue su
 https://github.com/marcodolce904-boop/RETICOLO

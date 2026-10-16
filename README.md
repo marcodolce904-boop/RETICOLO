@@ -9,7 +9,7 @@
 
 <p align="center">
   <img alt="status" src="https://img.shields.io/badge/status-experimental%20beta-orange">
-  <img alt="version" src="https://img.shields.io/badge/version-2.0.1--beta-blue">
+  <img alt="version" src="https://img.shields.io/badge/version-2.0.2--beta-blue">
   <img alt="apps" src="https://img.shields.io/badge/Illustrator%20%C2%B7%20Photoshop%20%C2%B7%20InDesign%20%C2%B7%20Figma-grey">
 </p>
 
@@ -50,7 +50,9 @@ più una **libreria** di griglie da salvare, importare ed esportare.
 
 ## Installazione veloce (Windows e macOS)
 
-Un solo installer con le caselle da spuntare: **Illustrator, Photoshop, InDesign e Figma**. Windows: `Reticolo-Setup-<versione>.exe`. macOS: `Reticolo-Mac-<versione>.zip` (doppio clic su `Installa-Reticolo.command`). **Scarica da qui:** [`downloads/Reticolo-Setup-2.0.1.exe`](downloads/Reticolo-Setup-2.0.1.exe) (Windows; se il browser blocca l'`.exe`, usa lo zip [`Reticolo-Setup-2.0.1-windows.zip`](downloads/Reticolo-Setup-2.0.1-windows.zip)) e [`downloads/Reticolo-Mac-2.0.1.zip`](downloads/Reticolo-Mac-2.0.1.zip) (macOS). Su GitHub apri il file e premi *Download raw file*. I file si costruiscono con `node tools/build-installers.js`; dettagli, limiti e avvisi di sicurezza in `installer/README.md`.
+> **Guida passo passo, con Figma:** [`docs/INSTALLAZIONE.md`](docs/INSTALLAZIONE.md).
+
+Un solo installer con le caselle da spuntare: **Illustrator, Photoshop, InDesign e Figma**. Windows: `Reticolo-Setup-<versione>.exe`. macOS: `Reticolo-Mac-<versione>.zip` (doppio clic su `Installa-Reticolo.command`). **Scarica da qui:** [`downloads/Reticolo-Setup-2.0.2.exe`](downloads/Reticolo-Setup-2.0.2.exe) (Windows; se il browser blocca l'`.exe`, usa lo zip [`Reticolo-Setup-2.0.2-windows.zip`](downloads/Reticolo-Setup-2.0.2-windows.zip)) e [`downloads/Reticolo-Mac-2.0.2.zip`](downloads/Reticolo-Mac-2.0.2.zip) (macOS). Su GitHub apri il file e premi *Download raw file*. I file si costruiscono con `node tools/build-installers.js`; dettagli, limiti e avvisi di sicurezza in `installer/README.md`.
 
 ## Installazione su Windows (manuale)
 
